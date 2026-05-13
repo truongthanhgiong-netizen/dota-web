@@ -1,4 +1,4 @@
-const DATA_URL = "data/dota-games.txt";
+const API_URL = "api/games.php";
 
 const state = {
   games: [],
@@ -21,63 +21,11 @@ const els = {
   sortButtons: document.querySelectorAll("[data-sort]"),
 };
 
-function unescapeField(value) {
-  return value
-    .replace(/\\n/g, "\n")
-    .replace(/\\r/g, "\r")
-    .replace(/\\t/g, "\t")
-    .replace(/\\\\/g, "\\");
-}
-
-function parseGames(text) {
-  const games = [];
-  let current = null;
-
-  for (const rawLine of text.split(/\r?\n/)) {
-    const line = rawLine.trimEnd();
-    if (!line || line.startsWith("#")) {
-      continue;
-    }
-
-    const parts = line.split("\t").map(unescapeField);
-    const type = parts[0];
-
-    if (type === "GAME") {
-      current = { name: parts[1] || "Unknown game", date: "", result: "", matchId: "", heroes: [] };
-      games.push(current);
-      continue;
-    }
-
-    if (!current) {
-      continue;
-    }
-
-    if (type === "DATE") {
-      current.date = parts[1] || "";
-      current.rawDate = parts[2] || "";
-    } else if (type === "RESULT") {
-      current.result = parts[1] || "";
-    } else if (type === "MATCH_ID") {
-      current.matchId = parts[1] || "";
-    } else if (type === "HERO") {
-      current.heroes.push({
-        type: parts[1],
-        cell: parts[2],
-        name: parts[3],
-      });
-    }
-  }
-
-  return games;
-}
-
 function calculateStats(games) {
   const statsByHero = new Map();
   const gameCount = games.length;
 
   for (const game of games) {
-    const perGameHeroEvents = new Map();
-
     for (const event of game.heroes) {
       if (!event.name || !["pick", "ban"].includes(event.type)) {
         continue;
@@ -100,10 +48,6 @@ function calculateStats(games) {
       }
       stat.games.add(game.name);
 
-      if (!perGameHeroEvents.has(event.name)) {
-        perGameHeroEvents.set(event.name, new Set());
-      }
-      perGameHeroEvents.get(event.name).add(event.type);
     }
   }
 
@@ -266,19 +210,24 @@ async function init() {
   setupEvents();
 
   try {
-    const response = await fetch(DATA_URL, { cache: "no-store" });
+    const response = await fetch(API_URL, { cache: "no-store" });
     if (!response.ok) {
-      throw new Error(`Unable to load ${DATA_URL}: ${response.status}`);
+      throw new Error(`Unable to load ${API_URL}: ${response.status}`);
     }
 
-    state.games = parseGames(await response.text());
+    const data = await response.json();
+    if (data.error) {
+      throw new Error(data.message || "The Google Sheet converter failed.");
+    }
+
+    state.games = Array.isArray(data.games) ? data.games : [];
     state.stats = calculateStats(state.games);
 
     renderSummary();
     renderStats();
     renderGames();
   } catch (error) {
-    els.dataNote.textContent = "Could not load the data file.";
+    els.dataNote.textContent = "Could not load the Google Sheet data.";
     els.statsBody.innerHTML = `<tr><td class="error" colspan="6">${escapeHtml(error.message)}</td></tr>`;
   }
 }

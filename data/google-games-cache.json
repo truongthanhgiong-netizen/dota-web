@@ -1,0 +1,421 @@
+{
+    "source": "google-sheets",
+    "spreadsheetId": "1gsdQCCCJzEWGS1UaO0yKBGh4ALW-yAIfIgRwIYu8vpc",
+    "generatedAt": "2026-05-13T22:45:21+00:00",
+    "games": [
+        {
+            "name": "game 1",
+            "date": "2026-01-06",
+            "rawDate": "46028.0",
+            "result": "0-1",
+            "matchId": "8.63789761E9",
+            "heroes": [
+                {
+                    "type": "ban",
+                    "cell": "F16",
+                    "name": "Night Stalker"
+                },
+                {
+                    "type": "pick",
+                    "cell": "F38",
+                    "name": "Night Stalker"
+                }
+            ]
+        },
+        {
+            "name": "game 2",
+            "date": "2026-01-06",
+            "rawDate": "46028.0",
+            "result": "0-1",
+            "matchId": "8.63807943E9",
+            "heroes": []
+        },
+        {
+            "name": "game 3",
+            "date": "2026-04-19",
+            "rawDate": "46131.0",
+            "result": "1-0",
+            "matchId": "8.778082136E9",
+            "heroes": [
+                {
+                    "type": "ban",
+                    "cell": "F16",
+                    "name": "Ringmaster"
+                },
+                {
+                    "type": "ban",
+                    "cell": "F17",
+                    "name": "Night Stalker"
+                },
+                {
+                    "type": "ban",
+                    "cell": "E18",
+                    "name": "Hoodwink"
+                },
+                {
+                    "type": "ban",
+                    "cell": "E19",
+                    "name": "Lich"
+                },
+                {
+                    "type": "ban",
+                    "cell": "F20",
+                    "name": "Phantom Lancer"
+                },
+                {
+                    "type": "ban",
+                    "cell": "E21",
+                    "name": "Weaver"
+                },
+                {
+                    "type": "ban",
+                    "cell": "E22",
+                    "name": "Magnus"
+                },
+                {
+                    "type": "pick",
+                    "cell": "F23",
+                    "name": "Windranger"
+                },
+                {
+                    "type": "pick",
+                    "cell": "E24",
+                    "name": "Phoenix"
+                },
+                {
+                    "type": "ban",
+                    "cell": "F25",
+                    "name": "Muerta"
+                },
+                {
+                    "type": "ban",
+                    "cell": "F26",
+                    "name": "Disruptor"
+                },
+                {
+                    "type": "ban",
+                    "cell": "E27",
+                    "name": "Timbersaw"
+                },
+                {
+                    "type": "pick",
+                    "cell": "E28",
+                    "name": "Clockwerk"
+                },
+                {
+                    "type": "pick",
+                    "cell": "F29",
+                    "name": "Snapfire"
+                },
+                {
+                    "type": "pick",
+                    "cell": "F30",
+                    "name": "Beastmaster"
+                },
+                {
+                    "type": "pick",
+                    "cell": "E31",
+                    "name": "Clinkz"
+                },
+                {
+                    "type": "pick",
+                    "cell": "E32",
+                    "name": "Pangolier"
+                },
+                {
+                    "type": "pick",
+                    "cell": "F33",
+                    "name": "Spirit Breaker"
+                },
+                {
+                    "type": "ban",
+                    "cell": "F34",
+                    "name": "Invoker"
+                },
+                {
+                    "type": "ban",
+                    "cell": "E35",
+                    "name": "Outworld Destroyer"
+                },
+                {
+                    "type": "ban",
+                    "cell": "F36",
+                    "name": "Rubick"
+                },
+                {
+                    "type": "ban",
+                    "cell": "E37",
+                    "name": "Queen of Pain"
+                },
+                {
+                    "type": "pick",
+                    "cell": "F38",
+                    "name": "Void Spirit"
+                },
+                {
+                    "type": "pick",
+                    "cell": "E39",
+                    "name": "Sand King"
+                }
+            ]
+        },
+        {
+            "name": "game 4",
+            "date": "2026-04-19",
+            "rawDate": "46131.0",
+            "result": "1-0",
+            "matchId": "8.778197975E9",
+            "heroes": [
+                {
+                    "type": "ban",
+                    "cell": "E16",
+                    "name": "Grimstroke"
+                },
+                {
+                    "type": "ban",
+                    "cell": "E17",
+                    "name": "Timbersaw"
+                },
+                {
+                    "type": "ban",
+                    "cell": "F18",
+                    "name": "Phoenix"
+                },
+                {
+                    "type": "ban",
+                    "cell": "F19",
+                    "name": "Clinkz"
+                },
+                {
+                    "type": "ban",
+                    "cell": "E20",
+                    "name": "Mars"
+                },
+                {
+                    "type": "ban",
+                    "cell": "F21",
+                    "name": "Rubick"
+                },
+                {
+                    "type": "ban",
+                    "cell": "F22",
+                    "name": "Night Stalker"
+                },
+                {
+                    "type": "pick",
+                    "cell": "E23",
+                    "name": "Spirit Breaker"
+                },
+                {
+                    "type": "pick",
+                    "cell": "F24",
+                    "name": "Hoodwink"
+                },
+                {
+                    "type": "ban",
+                    "cell": "E25",
+                    "name": "Weaver"
+                },
+                {
+                    "type": "ban",
+                    "cell": "E26",
+                    "name": "Outworld Destroyer"
+                },
+                {
+                    "type": "ban",
+                    "cell": "F27",
+                    "name": "Lifestealer"
+                },
+                {
+                    "type": "pick",
+                    "cell": "F28",
+                    "name": "Disruptor"
+                },
+                {
+                    "type": "pick",
+                    "cell": "E29",
+                    "name": "Techies"
+                },
+                {
+                    "type": "pick",
+                    "cell": "E30",
+                    "name": "Windranger"
+                },
+                {
+                    "type": "pick",
+                    "cell": "F31",
+                    "name": "Magnus"
+                },
+                {
+                    "type": "pick",
+                    "cell": "F32",
+                    "name": "Sven"
+                },
+                {
+                    "type": "pick",
+                    "cell": "E33",
+                    "name": "Pangolier"
+                },
+                {
+                    "type": "ban",
+                    "cell": "E34",
+                    "name": "Queen of Pain"
+                },
+                {
+                    "type": "ban",
+                    "cell": "F35",
+                    "name": "Sand King"
+                },
+                {
+                    "type": "ban",
+                    "cell": "E36",
+                    "name": "Storm Spirit"
+                },
+                {
+                    "type": "ban",
+                    "cell": "F37",
+                    "name": "Doom"
+                },
+                {
+                    "type": "pick",
+                    "cell": "E38",
+                    "name": "Legion Commander"
+                },
+                {
+                    "type": "pick",
+                    "cell": "F39",
+                    "name": "Death Prophet"
+                }
+            ]
+        },
+        {
+            "name": "game 5",
+            "date": "2026-05-09",
+            "rawDate": "46151.0",
+            "result": "1-0",
+            "matchId": "8.804288197E9",
+            "heroes": [
+                {
+                    "type": "ban",
+                    "cell": "F16",
+                    "name": "Ringmaster"
+                },
+                {
+                    "type": "ban",
+                    "cell": "F17",
+                    "name": "Pangolier"
+                },
+                {
+                    "type": "ban",
+                    "cell": "E18",
+                    "name": "Night Stalker"
+                },
+                {
+                    "type": "ban",
+                    "cell": "E19",
+                    "name": "Rubick"
+                },
+                {
+                    "type": "ban",
+                    "cell": "F20",
+                    "name": "Phoenix"
+                },
+                {
+                    "type": "ban",
+                    "cell": "E21",
+                    "name": "Sand King"
+                },
+                {
+                    "type": "ban",
+                    "cell": "E22",
+                    "name": "Dawnbreaker"
+                },
+                {
+                    "type": "pick",
+                    "cell": "F23",
+                    "name": "Spirit Breaker"
+                },
+                {
+                    "type": "pick",
+                    "cell": "E24",
+                    "name": "Undying"
+                },
+                {
+                    "type": "ban",
+                    "cell": "F25",
+                    "name": "Timbersaw"
+                },
+                {
+                    "type": "ban",
+                    "cell": "F26",
+                    "name": "Magnus"
+                },
+                {
+                    "type": "ban",
+                    "cell": "E27",
+                    "name": "Lina"
+                },
+                {
+                    "type": "pick",
+                    "cell": "E28",
+                    "name": "Lich"
+                },
+                {
+                    "type": "pick",
+                    "cell": "F29",
+                    "name": "Snapfire"
+                },
+                {
+                    "type": "pick",
+                    "cell": "F30",
+                    "name": "Chaos Knight"
+                },
+                {
+                    "type": "pick",
+                    "cell": "E31",
+                    "name": "Leshrac"
+                },
+                {
+                    "type": "pick",
+                    "cell": "E32",
+                    "name": "Phantom Lancer"
+                },
+                {
+                    "type": "pick",
+                    "cell": "F33",
+                    "name": "Sven"
+                },
+                {
+                    "type": "ban",
+                    "cell": "F34",
+                    "name": "Weaver"
+                },
+                {
+                    "type": "ban",
+                    "cell": "E35",
+                    "name": "Void Spirit"
+                },
+                {
+                    "type": "ban",
+                    "cell": "F36",
+                    "name": "Primal Beast"
+                },
+                {
+                    "type": "ban",
+                    "cell": "E37",
+                    "name": "Queen of Pain"
+                },
+                {
+                    "type": "pick",
+                    "cell": "F38",
+                    "name": "Ember Spirit"
+                },
+                {
+                    "type": "pick",
+                    "cell": "E39",
+                    "name": "Mars"
+                }
+            ]
+        }
+    ]
+}
