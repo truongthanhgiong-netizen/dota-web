@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Dota Hero Stats</title>
+    <link rel="stylesheet" href="src/styles.css">
+  </head>
+  <body>
+    <main class="page">
+      <header class="hero">
+        <p class="eyebrow">Road to TI1x</p>
+        <h1>Dota Hero Draft Stats</h1>
+        <p class="intro">Pick and ban percentages calculated directly from <code>data/dota-games.txt</code>.</p>
+      </header>
+
+      <section class="summary" aria-label="Dataset summary">
+        <article class="summary-card">
+          <span class="label">Games</span>
+          <strong id="games-count">-</strong>
+        </article>
+        <article class="summary-card">
+          <span class="label">Heroes</span>
+          <strong id="heroes-count">-</strong>
+        </article>
+        <article class="summary-card">
+          <span class="label">Picks</span>
+          <strong id="picks-count">-</strong>
+        </article>
+        <article class="summary-card">
+          <span class="label">Bans</span>
+          <strong id="bans-count">-</strong>
+        </article>
+      </section>
+
+      <section class="panel" aria-labelledby="stats-heading">
+        <div class="panel-header">
+          <div>
+            <h2 id="stats-heading">Hero Statistics</h2>
+            <p id="data-note">Loading data...</p>
+          </div>
+          <label class="search">
+            <span>Search</span>
+            <input id="hero-search" type="search" placeholder="Hero name" autocomplete="off">
+          </label>
+          <label class="mobile-sort">
+            <span>Sort</span>
+            <select id="mobile-sort">
+              <option value="presenceRate:desc">Presence % high to low</option>
+              <option value="pickRate:desc">Pick % high to low</option>
+              <option value="banRate:desc">Ban % high to low</option>
+              <option value="hero:asc">Hero A to Z</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th><button type="button" data-sort="hero">Hero</button></th>
+                <th><button type="button" data-sort="pickRate">Pick %</button></th>
+                <th><button type="button" data-sort="pickCount">Picks</button></th>
+                <th><button type="button" data-sort="banRate">Ban %</button></th>
+                <th><button type="button" data-sort="banCount">Bans</button></th>
+                <th><button type="button" data-sort="presenceRate">Presence %</button></th>
+              </tr>
+            </thead>
+            <tbody id="stats-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="panel games-panel" aria-labelledby="games-heading">
+        <h2 id="games-heading">Games Included</h2>
+        <div id="games-list" class="games-list"></div>
+      </section>
+    </main>
+
+    <script src="src/app.js"></script>
+  </body>
+</html>
