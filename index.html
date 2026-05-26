@@ -33,7 +33,39 @@
         </article>
       </section>
 
-      <section class="panel" aria-labelledby="stats-heading">
+      <nav class="tabs" aria-label="Dashboard sections">
+        <button class="tab-button active" type="button" data-tab="leaderboard">Leaderboard</button>
+        <button class="tab-button" type="button" data-tab="draft">Picking and Banning</button>
+        <button class="tab-button" type="button" data-tab="duos">Duo Matrix</button>
+        <button class="tab-button" type="button" data-tab="games">Games</button>
+      </nav>
+
+      <section id="leaderboard-panel" class="panel tab-panel active" aria-labelledby="leaderboard-heading">
+        <div class="panel-header">
+          <div>
+            <h2 id="leaderboard-heading">Leaderboard</h2>
+            <p id="leaderboard-note">Player win rates from Radiant and Dire lineups.</p>
+          </div>
+        </div>
+        <div class="table-wrap leaderboard-wrap">
+          <table class="leaderboard-table">
+            <thead>
+              <tr>
+                <th>ranking</th>
+                <th>player</th>
+                <th>games</th>
+                <th>win</th>
+                <th>lose</th>
+                <th>score</th>
+                <th>% winrate</th>
+              </tr>
+            </thead>
+            <tbody id="leaderboard-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="draft-panel" class="panel tab-panel" aria-labelledby="stats-heading" hidden>
         <div class="panel-header">
           <div>
             <h2 id="stats-heading">Hero Statistics</h2>
@@ -55,7 +87,7 @@
         </div>
 
         <div class="table-wrap">
-          <table>
+          <table class="stats-table">
             <thead>
               <tr>
                 <th><button type="button" data-sort="hero">Hero</button></th>
@@ -71,7 +103,17 @@
         </div>
       </section>
 
-      <section class="panel games-panel" aria-labelledby="games-heading">
+      <section id="duos-panel" class="panel duo-panel tab-panel" aria-labelledby="duo-heading" hidden>
+        <div class="panel-header">
+          <div>
+            <h2 id="duo-heading">Duo Win Rates</h2>
+            <p id="duo-note">Teammate records from Radiant and Dire lineups.</p>
+          </div>
+        </div>
+        <div id="duo-matrix" class="duo-matrix"></div>
+      </section>
+
+      <section id="games-panel" class="panel games-panel tab-panel" aria-labelledby="games-heading" hidden>
         <h2 id="games-heading">Games Included</h2>
         <div id="games-list" class="games-list"></div>
       </section>

@@ -181,6 +181,10 @@ function extractGames(string $xlsx): array
                 'rawDate' => trim(cellValue($cells['B1'] ?? null, $sharedStrings)),
                 'result' => trim(cellValue($cells['B2'] ?? null, $sharedStrings)),
                 'matchId' => trim(cellValue($cells['B3'] ?? null, $sharedStrings)),
+                'players' => [
+                    'radiant' => playerNames($cells, $sharedStrings, 'D'),
+                    'dire' => playerNames($cells, $sharedStrings, 'G'),
+                ],
                 'heroes' => $events,
             ];
         }
@@ -244,6 +248,18 @@ function draftEventType(string $style, array $styleFillColors): ?string
     }
 
     return null;
+}
+
+function playerNames(array $cells, array $sharedStrings, string $column): array
+{
+    $players = [];
+    for ($row = 9; $row <= 13; $row++) {
+        $name = trim(cellValue($cells[$column . $row] ?? null, $sharedStrings));
+        if ($name !== '') {
+            $players[] = $name;
+        }
+    }
+    return $players;
 }
 
 function zipRead(ZipArchive $zip, string $path): string

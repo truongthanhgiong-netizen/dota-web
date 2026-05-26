@@ -120,6 +120,35 @@ h2 {
   letter-spacing: -0.06em;
 }
 
+.tabs {
+  display: flex;
+  gap: 10px;
+  margin: 22px 0 4px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.tab-button {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  padding: 11px 16px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--muted);
+  cursor: pointer;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.tab-button.active {
+  border-color: rgba(217, 164, 65, 0.65);
+  background: var(--accent);
+  color: #111827;
+}
+
+.tab-panel[hidden] {
+  display: none;
+}
+
 .panel {
   margin-top: 18px;
   overflow: hidden;
@@ -233,6 +262,64 @@ tbody tr:hover {
   background: rgba(255, 255, 255, 0.035);
 }
 
+.leaderboard-table {
+  min-width: 760px;
+  background: #f5f5f5;
+  color: #172033;
+}
+
+.leaderboard-table th,
+.leaderboard-table td {
+  border-bottom: 0;
+  padding: 9px 12px;
+  color: #172033;
+}
+
+.leaderboard-table th {
+  background: #356e58;
+  color: #ffffff;
+  font-size: 0.9rem;
+  letter-spacing: 0;
+  text-transform: lowercase;
+}
+
+.leaderboard-table th::after {
+  content: "v";
+  float: right;
+  opacity: 0.9;
+}
+
+.leaderboard-table tbody tr {
+  background: #f7f7f7;
+}
+
+.leaderboard-table tbody tr:nth-child(odd) {
+  background: #eef0f2;
+}
+
+.leaderboard-table tbody tr:hover {
+  background: #e6eef6;
+}
+
+.leaderboard-table .leaderboard-elite,
+.leaderboard-table .leaderboard-elite:hover {
+  background: #ffd966;
+}
+
+.leaderboard-table .leaderboard-strong,
+.leaderboard-table .leaderboard-strong:hover {
+  background: #f6b26b;
+}
+
+.leaderboard-table .leaderboard-low,
+.leaderboard-table .leaderboard-low:hover {
+  background: #e06666;
+}
+
+.leaderboard-player {
+  font-weight: 700;
+}
+
 .hero-name {
   font-weight: 800;
 }
@@ -280,6 +367,76 @@ tbody tr:hover {
 
 .games-panel {
   padding: 24px;
+}
+
+.duo-table-wrap {
+  max-height: 70vh;
+  overflow: auto;
+}
+
+.duo-table {
+  min-width: max-content;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.92rem;
+}
+
+.duo-table th,
+.duo-table td {
+  min-width: 128px;
+  padding: 10px 12px;
+  border-right: 1px solid rgba(0, 0, 0, 0.22);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.22);
+  color: #071018;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.duo-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: #f5f7fa;
+  color: #111827;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.duo-table tbody th {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: #f5f7fa;
+  color: #111827;
+  font-weight: 700;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.duo-table thead th:first-child {
+  left: 0;
+  z-index: 3;
+}
+
+.duo-strong {
+  background: #b6d7a8;
+}
+
+.duo-even {
+  background: #ffd966;
+}
+
+.duo-weak {
+  background: #e69138;
+}
+
+.duo-zero {
+  background: #e06666;
+}
+
+.duo-self,
+.duo-empty {
+  background: #cccccc;
 }
 
 .games-list {
@@ -378,20 +535,25 @@ tbody tr:hover {
     overflow-x: visible;
   }
 
-  table,
-  thead,
-  tbody,
-  tr,
-  th,
-  td {
+  .leaderboard-wrap,
+  .duo-table-wrap {
+    overflow-x: auto;
+  }
+
+  .stats-table,
+  .stats-table thead,
+  .stats-table tbody,
+  .stats-table tr,
+  .stats-table th,
+  .stats-table td {
     display: block;
   }
 
-  table {
+  .stats-table {
     min-width: 0;
   }
 
-  thead {
+  .stats-table thead {
     position: absolute;
     width: 1px;
     height: 1px;
@@ -400,13 +562,13 @@ tbody tr:hover {
     white-space: nowrap;
   }
 
-  tbody {
+  .stats-table tbody {
     display: grid;
     gap: 12px;
     padding: 14px;
   }
 
-  tbody tr {
+  .stats-table tbody tr {
     display: grid;
     gap: 10px;
     border: 1px solid var(--line);
@@ -415,11 +577,11 @@ tbody tr:hover {
     background: rgba(0, 0, 0, 0.16);
   }
 
-  tbody tr:hover {
+  .stats-table tbody tr:hover {
     background: rgba(0, 0, 0, 0.16);
   }
 
-  td {
+  .stats-table td {
     display: grid;
     grid-template-columns: minmax(88px, 0.42fr) 1fr;
     gap: 12px;
@@ -428,7 +590,7 @@ tbody tr:hover {
     padding: 0;
   }
 
-  td::before {
+  .stats-table td::before {
     content: attr(data-label);
     color: var(--muted);
     font-size: 0.72rem;
