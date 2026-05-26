@@ -1,16 +1,30 @@
 <?php
 declare(strict_types=1);
-
 const SPREADSHEET_ID = '1gsdQCCCJzEWGS1UaO0yKBGh4ALW-yAIfIgRwIYu8vpc';
 const CACHE_FILE = __DIR__ . '/../data/google-games-cache.json';
 const CACHE_TTL_SECONDS = 86400;
 const BAN_STYLE_IDS = ['4' => true];
 const PICK_STYLE_IDS = ['7' => true];
+const BAN_FILL_COLORS = ['FFEA9999' => true];
+const PICK_FILL_COLORS = ['FFB6D7A8' => true];
 
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store');
 
 try {
+    if (!extension_loaded('openssl') && !extension_loaded('curl')) {
+        throw new RuntimeException(
+            'PHP OpenSSL or cURL extension is required to download the Google Sheet via HTTPS. '
+            . 'Run the server with: php -d extension=openssl -d extension=curl -d extension=zip -S localhost:8000'
+        );
+    }
+    if (!class_exists('ZipArchive')) {
+        throw new RuntimeException(
+            'PHP Zip extension (ZipArchive) is required to read the XLSX workbook. '
+            . 'Run the server with: php -d extension=zip -S localhost:8000'
+        );
+    }
+
     $forceRefresh = isset($_GET['refresh']) && $_GET['refresh'] === '1';
 
     if (!$forceRefresh && is_readable(CACHE_FILE) && time() - filemtime(CACHE_FILE) < CACHE_TTL_SECONDS) {
@@ -51,31 +65,42 @@ function downloadWorkbook(): string
     $url = 'https://docs.google.com/spreadsheets/d/' . SPREADSHEET_ID . '/export?format=xlsx';
 
     $content = false;
+
+    if (function_exists('curl_init')) {
+        $curl = curl_init($url);
+        curl_setopt_array($curl, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_TIMEOUT => 60,
+            CURLOPT_USERAGENT => 'dota-website/1.0',
+            CURLOPT_FAILONERROR => true,
+        ]);
+        $content = curl_exec($curl);
+        $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+        if ($content !== false && $httpCode === 200) {
+            return $content;
+        }
+        $content = false;
+    }
+
     if (ini_get('allow_url_fopen')) {
         $context = stream_context_create([
             'http' => [
                 'method' => 'GET',
-                'timeout' => 30,
+                'timeout' => 60,
                 'header' => "User-Agent: dota-website/1.0\r\n",
+                'follow_location' => 1,
+                'max_redirects' => 20,
             ],
         ]);
         $content = @file_get_contents($url, false, $context);
     }
 
-    if ($content === false && function_exists('curl_init')) {
-        $curl = curl_init($url);
-        curl_setopt_array($curl, [
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_TIMEOUT => 30,
-            CURLOPT_USERAGENT => 'dota-website/1.0',
-        ]);
-        $content = curl_exec($curl);
-        curl_close($curl);
-    }
-
     if ($content === false || strlen($content) === 0) {
-        throw new RuntimeException('Could not download the Google Sheet as XLSX. Make sure the sheet is publicly readable.');
+        throw new RuntimeException(
+            'Could not download the Google Sheet as XLSX. '
+            . 'Make sure the sheet is published to the web (File > Share > Publish to web) and is publicly readable.'
+        );
     }
 
     return $content;
@@ -102,6 +127,7 @@ function extractGames(string $xlsx): array
 
     try {
         $sharedStrings = loadSharedStrings($zip);
+        $styleFillColors = loadStyleFillColors($zip);
         $relationships = loadRelationships($zip);
         $sheets = loadSheets($zip, $relationships);
         $games = [];
@@ -139,10 +165,9 @@ function extractGames(string $xlsx): array
                 }
 
                 $style = (string) $cell['s'];
-                if (isset(BAN_STYLE_IDS[$style])) {
-                    $events[] = ['type' => 'ban', 'cell' => $ref, 'name' => $hero];
-                } elseif (isset(PICK_STYLE_IDS[$style])) {
-                    $events[] = ['type' => 'pick', 'cell' => $ref, 'name' => $hero];
+                $type = draftEventType($style, $styleFillColors);
+                if ($type !== null) {
+                    $events[] = ['type' => $type, 'cell' => $ref, 'name' => $hero];
                 }
             }
 
@@ -169,6 +194,56 @@ function extractGames(string $xlsx): array
         $zip->close();
         @unlink($tmp);
     }
+}
+
+function loadStyleFillColors(ZipArchive $zip): array
+{
+    $xml = $zip->getFromName('xl/styles.xml');
+    if ($xml === false) {
+        return [];
+    }
+
+    $root = simplexml_load_string($xml);
+    if ($root === false) {
+        return [];
+    }
+
+    $root->registerXPathNamespace('m', 'http://schemas.openxmlformats.org/spreadsheetml/2006/main');
+
+    $fillColors = [];
+    foreach ($root->xpath('//m:fills/m:fill') ?: [] as $index => $fill) {
+        $fill->registerXPathNamespace('m', 'http://schemas.openxmlformats.org/spreadsheetml/2006/main');
+        $colors = $fill->xpath('.//m:fgColor') ?: [];
+        $fillColors[$index] = isset($colors[0]) ? strtoupper((string) $colors[0]['rgb']) : '';
+    }
+
+    $styleFillColors = [];
+    foreach ($root->xpath('//m:cellXfs/m:xf') ?: [] as $index => $style) {
+        $fillId = (int) $style['fillId'];
+        $styleFillColors[(string) $index] = $fillColors[$fillId] ?? '';
+    }
+
+    return $styleFillColors;
+}
+
+function draftEventType(string $style, array $styleFillColors): ?string
+{
+    if (isset(BAN_STYLE_IDS[$style])) {
+        return 'ban';
+    }
+    if (isset(PICK_STYLE_IDS[$style])) {
+        return 'pick';
+    }
+
+    $fillColor = $styleFillColors[$style] ?? '';
+    if (isset(BAN_FILL_COLORS[$fillColor])) {
+        return 'ban';
+    }
+    if (isset(PICK_FILL_COLORS[$fillColor])) {
+        return 'pick';
+    }
+
+    return null;
 }
 
 function zipRead(ZipArchive $zip, string $path): string
