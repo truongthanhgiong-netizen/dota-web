@@ -37,6 +37,7 @@
         <button class="tab-button active" type="button" data-tab="leaderboard">Leaderboard</button>
         <button class="tab-button" type="button" data-tab="draft">Picking and Banning</button>
         <button class="tab-button" type="button" data-tab="duos">Duo Matrix</button>
+        <button class="tab-button" type="button" data-tab="positions">Positions</button>
         <button class="tab-button" type="button" data-tab="games">Games</button>
       </nav>
 
@@ -80,6 +81,7 @@
             <select id="mobile-sort">
               <option value="presenceRate:desc">Presence % high to low</option>
               <option value="pickRate:desc">Pick % high to low</option>
+              <option value="pickWinRate:desc">Pick win % high to low</option>
               <option value="banRate:desc">Ban % high to low</option>
               <option value="hero:asc">Hero A to Z</option>
             </select>
@@ -93,6 +95,7 @@
                 <th><button type="button" data-sort="hero">Hero</button></th>
                 <th><button type="button" data-sort="pickRate">Pick %</button></th>
                 <th><button type="button" data-sort="pickCount">Picks</button></th>
+                <th><button type="button" data-sort="pickWinRate">Pick Win %</button></th>
                 <th><button type="button" data-sort="banRate">Ban %</button></th>
                 <th><button type="button" data-sort="banCount">Bans</button></th>
                 <th><button type="button" data-sort="presenceRate">Presence %</button></th>
@@ -113,9 +116,36 @@
         <div id="duo-matrix" class="duo-matrix"></div>
       </section>
 
+      <section id="positions-panel" class="panel tab-panel" aria-labelledby="positions-heading" hidden>
+        <div class="panel-header">
+          <div>
+            <h2 id="positions-heading">Position Win Rates</h2>
+            <p id="positions-note">Player records by position and side.</p>
+          </div>
+        </div>
+        <div class="table-wrap positions-wrap">
+          <table class="positions-table">
+            <thead>
+              <tr>
+                <th><button type="button" data-position-sort="player">Player</button></th>
+                <th><button type="button" data-position-sort="pos1">Pos 1</button></th>
+                <th><button type="button" data-position-sort="pos2">Pos 2</button></th>
+                <th><button type="button" data-position-sort="pos3">Pos 3</button></th>
+                <th><button type="button" data-position-sort="pos4">Pos 4</button></th>
+                <th><button type="button" data-position-sort="pos5">Pos 5</button></th>
+                <th><button type="button" data-position-sort="radiant">Radiant Winrate</button></th>
+                <th><button type="button" data-position-sort="dire">Dire Winrate</button></th>
+              </tr>
+            </thead>
+            <tbody id="positions-body"></tbody>
+          </table>
+        </div>
+      </section>
+
       <section id="games-panel" class="panel games-panel tab-panel" aria-labelledby="games-heading" hidden>
         <h2 id="games-heading">Games Included</h2>
         <div id="games-list" class="games-list"></div>
+        <div id="game-detail" class="game-detail"></div>
       </section>
     </main>
 

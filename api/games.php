@@ -180,11 +180,14 @@ function extractGames(string $xlsx): array
                 'date' => formatDate(trim(cellValue($cells['B1'] ?? null, $sharedStrings))),
                 'rawDate' => trim(cellValue($cells['B1'] ?? null, $sharedStrings)),
                 'result' => trim(cellValue($cells['B2'] ?? null, $sharedStrings)),
-                'matchId' => trim(cellValue($cells['B3'] ?? null, $sharedStrings)),
+                'matchId' => formatMatchId(trim(cellValue($cells['B3'] ?? null, $sharedStrings))),
                 'players' => [
                     'radiant' => playerNames($cells, $sharedStrings, 'D'),
                     'dire' => playerNames($cells, $sharedStrings, 'G'),
                 ],
+                'playerDraft' => sheetRows($cells, $sharedStrings, 5, 6, 'C', 'N'),
+                'firstPick' => firstPickSide($cells, $sharedStrings),
+                'heroLocks' => heroLocks($cells, $sharedStrings),
                 'heroes' => $events,
             ];
         }
@@ -260,6 +263,63 @@ function playerNames(array $cells, array $sharedStrings, string $column): array
         }
     }
     return $players;
+}
+
+function formatMatchId(string $value): string
+{
+    if ($value === '') {
+        return '';
+    }
+    if (preg_match('/^-?\d+(?:\.\d+)?e[+-]?\d+$/i', $value)) {
+        return sprintf('%.0F', (float) $value);
+    }
+    return $value;
+}
+
+function sheetRows(array $cells, array $sharedStrings, int $startRow, int $endRow, string $startColumn, string $endColumn): array
+{
+    $rows = [];
+    for ($row = $startRow; $row <= $endRow; $row++) {
+        $values = [];
+        for ($column = columnNumber($startColumn); $column <= columnNumber($endColumn); $column++) {
+            $cell = columnName($column) . $row;
+            $values[] = [
+                'cell' => $cell,
+                'value' => trim(cellValue($cells[$cell] ?? null, $sharedStrings)),
+            ];
+        }
+        $rows[] = $values;
+    }
+    return $rows;
+}
+
+function firstPickSide(array $cells, array $sharedStrings): array
+{
+    $radiant = trim(cellValue($cells['E15'] ?? null, $sharedStrings));
+    $dire = trim(cellValue($cells['F15'] ?? null, $sharedStrings));
+
+    if ($radiant !== '') {
+        return ['side' => 'radiant', 'cell' => 'E15', 'value' => $radiant];
+    }
+    if ($dire !== '') {
+        return ['side' => 'dire', 'cell' => 'F15', 'value' => $dire];
+    }
+    return ['side' => '', 'cell' => '', 'value' => ''];
+}
+
+function heroLocks(array $cells, array $sharedStrings): array
+{
+    $locks = [];
+    for ($row = 9; $row <= 13; $row++) {
+        $locks[] = [
+            'position' => $row - 8,
+            'radiantPlayer' => trim(cellValue($cells['D' . $row] ?? null, $sharedStrings)),
+            'radiantHero' => trim(cellValue($cells['E' . $row] ?? null, $sharedStrings)),
+            'direHero' => trim(cellValue($cells['F' . $row] ?? null, $sharedStrings)),
+            'direPlayer' => trim(cellValue($cells['G' . $row] ?? null, $sharedStrings)),
+        ];
+    }
+    return $locks;
 }
 
 function zipRead(ZipArchive $zip, string $path): string
@@ -388,6 +448,17 @@ function columnNumber(string $column): int
         $number = ($number * 26) + ord($column[$i]) - 64;
     }
     return $number;
+}
+
+function columnName(int $number): string
+{
+    $name = '';
+    while ($number > 0) {
+        $number--;
+        $name = chr(($number % 26) + 65) . $name;
+        $number = intdiv($number, 26);
+    }
+    return $name;
 }
 
 function gameNumber(string $name): int
