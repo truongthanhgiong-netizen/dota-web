@@ -38,6 +38,24 @@ const els = {
   tabPanels: document.querySelectorAll(".tab-panel"),
 };
 
+function setText(element, value) {
+  if (element) {
+    element.textContent = value;
+  }
+}
+
+function setHtml(element, value) {
+  if (element) {
+    element.innerHTML = value;
+  }
+}
+
+function setValue(element, value) {
+  if (element) {
+    element.value = value;
+  }
+}
+
 function calculateStats(games) {
   const statsByHero = new Map();
   const gameCount = games.length;
@@ -343,11 +361,11 @@ function renderStats() {
   updateSortButtons();
 
   if (rows.length === 0) {
-    els.statsBody.innerHTML = `<tr><td class="empty" colspan="5">No heroes found.</td></tr>`;
+    setHtml(els.statsBody, `<tr><td class="empty" colspan="5">No heroes found.</td></tr>`);
     return;
   }
 
-  els.statsBody.innerHTML = rows.map((stat) => `
+  setHtml(els.statsBody, rows.map((stat) => `
     <tr>
       <td class="hero-name" data-label="Hero">${escapeHtml(stat.hero)}</td>
       <td class="analysis-cell pick-analysis" data-label="Pick Impact">
@@ -367,20 +385,20 @@ function renderStats() {
         ${meter(stat.presenceRate, "presence-meter")}
       </td>
     </tr>
-  `).join("");
+  `).join(""));
 }
 
 function renderSummary() {
-  els.gamesCount.textContent = state.games.length;
-  els.dataNote.textContent = `Percentages use ${state.games.length} game${state.games.length === 1 ? "" : "s"} as the denominator.`;
+  setText(els.gamesCount, state.games.length);
+  setText(els.dataNote, `Percentages use ${state.games.length} game${state.games.length === 1 ? "" : "s"} as the denominator.`);
 }
 
 function populateGameScope() {
-  els.gameScope.innerHTML = state.allGames.map((game, index) => `
+  setHtml(els.gameScope, state.allGames.map((game, index) => `
     <option value="${index + 1}">After ${escapeHtml(game.name)}</option>
-  `).join("");
+  `).join(""));
   state.gameLimit = state.allGames.length;
-  els.gameScope.value = String(state.gameLimit);
+  setValue(els.gameScope, String(state.gameLimit));
 }
 
 function applyGameScope() {
@@ -422,12 +440,12 @@ function leaderboardRowClass(record) {
 
 function renderLeaderboard() {
   if (state.leaderboard.length === 0) {
-    els.leaderboardBody.innerHTML = `<tr><td class="empty" colspan="7">No player lineup data found. Force refresh the API cache to load player names.</td></tr>`;
-    els.leaderboardNote.textContent = "No player lineup data available yet.";
+    setHtml(els.leaderboardBody, `<tr><td class="empty" colspan="7">No player lineup data found. Force refresh the API cache to load player names.</td></tr>`);
+    setText(els.leaderboardNote, "No player lineup data available yet.");
     return;
   }
 
-  els.leaderboardBody.innerHTML = state.leaderboard.map((record) => `
+  setHtml(els.leaderboardBody, state.leaderboard.map((record) => `
     <tr class="${leaderboardRowClass(record)}">
       <td class="number" data-label="Ranking">${record.rank}</td>
       <td class="leaderboard-player" data-label="Player">${escapeHtml(record.player)}</td>
@@ -437,29 +455,29 @@ function renderLeaderboard() {
       <td class="number" data-label="Score">${record.wins} - ${record.losses}</td>
       <td class="number" data-label="Winrate">${record.winRate.toFixed(2)}%</td>
     </tr>
-  `).join("");
-  els.leaderboardNote.textContent = `${state.leaderboard.length} player${state.leaderboard.length === 1 ? "" : "s"} ranked by win rate.`;
+  `).join(""));
+  setText(els.leaderboardNote, `${state.leaderboard.length} player${state.leaderboard.length === 1 ? "" : "s"} ranked by win rate.`);
 }
 
 function renderPositionStats() {
   updatePositionSortButtons();
 
   if (state.positionStats.length === 0) {
-    els.positionsBody.innerHTML = `<tr><td class="empty" colspan="8">No player lineup data found. Force refresh the API cache to load player names.</td></tr>`;
-    els.positionsNote.textContent = "No player lineup data available yet.";
+    setHtml(els.positionsBody, `<tr><td class="empty" colspan="8">No player lineup data found. Force refresh the API cache to load player names.</td></tr>`);
+    setText(els.positionsNote, "No player lineup data available yet.");
     return;
   }
 
-  els.positionsBody.innerHTML = sortedPositionStats().map((record) => `
+  setHtml(els.positionsBody, sortedPositionStats().map((record) => `
     <tr>
       <td class="leaderboard-player" data-label="Player">${escapeHtml(record.player)}</td>
       ${record.positions.map((positionRecord, index) => `<td class="number ${winrateClass(positionRecord)}" data-label="Pos ${index + 1}">${formatRecord(positionRecord)}</td>`).join("")}
       <td class="number ${winrateClass(record.radiant)}" data-label="Radiant Winrate">${formatRecord(record.radiant)}</td>
       <td class="number ${winrateClass(record.dire)}" data-label="Dire Winrate">${formatRecord(record.dire)}</td>
     </tr>
-  `).join("");
+  `).join(""));
 
-  els.positionsNote.textContent = `${state.positionStats.length} player${state.positionStats.length === 1 ? "" : "s"} with position records.`;
+  setText(els.positionsNote, `${state.positionStats.length} player${state.positionStats.length === 1 ? "" : "s"} with position records.`);
 }
 
 function duoCellClass(winRate) {
@@ -477,8 +495,8 @@ function duoCellClass(winRate) {
 
 function renderDuoMatrix() {
   if (state.players.length === 0) {
-    els.duoMatrix.innerHTML = `<p class="empty">No player lineup data found. Force refresh the API cache to load player names.</p>`;
-    els.duoNote.textContent = "No player lineup data available yet.";
+    setHtml(els.duoMatrix, `<p class="empty">No player lineup data found. Force refresh the API cache to load player names.</p>`);
+    setText(els.duoNote, "No player lineup data available yet.");
     return;
   }
 
@@ -502,15 +520,15 @@ function renderDuoMatrix() {
     return `<tr><th scope="row" title="${escapeHtml(rowPlayer)}">${escapeHtml(rowPlayer)}</th>${cells}</tr>`;
   }).join("");
 
-  els.duoNote.textContent = `${state.players.length} player${state.players.length === 1 ? "" : "s"} included from game lineups.`;
-  els.duoMatrix.innerHTML = `
+  setText(els.duoNote, `${state.players.length} player${state.players.length === 1 ? "" : "s"} included from game lineups.`);
+  setHtml(els.duoMatrix, `
     <div class="duo-table-wrap">
       <table class="duo-table" style="--player-count: ${state.players.length}">
         <thead><tr><th scope="col"></th>${headers}</tr></thead>
         <tbody>${rows}</tbody>
       </table>
     </div>
-  `;
+  `);
 }
 
 function draftSide(cell) {
@@ -621,12 +639,12 @@ function renderHeroLocks(game) {
 
 function renderGameDetail(game) {
   if (!game) {
-    els.gameDetail.innerHTML = `<p class="empty">Select a game to view the full sheet data.</p>`;
+    setHtml(els.gameDetail, `<p class="empty">Select a game to view the full sheet data.</p>`);
     return;
   }
 
   const firstPick = game.firstPick?.side ? `${game.firstPick.side} first pick (${game.firstPick.cell}: ${game.firstPick.value})` : "No first-pick marker";
-  els.gameDetail.innerHTML = `
+  setHtml(els.gameDetail, `
     <article class="game-detail-card">
       <div class="game-detail-header">
         <div>
@@ -658,7 +676,7 @@ function renderGameDetail(game) {
         ${renderHeroLocks(game)}
       </section>
     </article>
-  `;
+  `);
 
   document.getElementById("close-game-detail")?.addEventListener("click", () => {
     state.selectedGame = "";
@@ -668,7 +686,7 @@ function renderGameDetail(game) {
 
 function renderGames() {
   const selectedGame = state.games.find((game) => game.name === state.selectedGame) || null;
-  els.gamesList.innerHTML = state.games.map((game) => {
+  setHtml(els.gamesList, state.games.map((game) => {
     const picks = game.heroes.filter((hero) => hero.type === "pick").length;
     const bans = game.heroes.filter((hero) => hero.type === "ban").length;
 
@@ -680,13 +698,13 @@ function renderGames() {
         <span>${picks} picks · ${bans} bans</span>
       </button>
     `;
-  }).join("");
+  }).join(""));
 
-  for (const card of els.gamesList.querySelectorAll("[data-game]")) {
+  for (const card of els.gamesList?.querySelectorAll("[data-game]") || []) {
     card.addEventListener("click", () => {
       state.selectedGame = card.dataset.game;
       renderGames();
-      els.gameDetail.scrollIntoView({ behavior: "smooth", block: "start" });
+      els.gameDetail?.scrollIntoView({ behavior: "smooth", block: "start" });
     });
   }
 
@@ -701,7 +719,7 @@ function updateSortButtons() {
   }
 
   if (els.mobileSort) {
-    els.mobileSort.value = `${state.sortKey}:${state.sortDirection}`;
+    setValue(els.mobileSort, `${state.sortKey}:${state.sortDirection}`);
   }
 }
 
@@ -723,19 +741,19 @@ function escapeHtml(value) {
 }
 
 function setupEvents() {
-  els.search.addEventListener("input", (event) => {
+  els.search?.addEventListener("input", (event) => {
     state.query = event.target.value;
     renderStats();
   });
 
-  els.mobileSort.addEventListener("change", (event) => {
+  els.mobileSort?.addEventListener("change", (event) => {
     const [key, direction] = event.target.value.split(":");
     state.sortKey = key;
     state.sortDirection = direction;
     renderStats();
   });
 
-  els.gameScope.addEventListener("change", (event) => {
+  els.gameScope?.addEventListener("change", (event) => {
     state.gameLimit = Number(event.target.value) || state.allGames.length;
     applyGameScope();
   });
@@ -799,11 +817,11 @@ async function init() {
     populateGameScope();
     applyGameScope();
   } catch (error) {
-    els.leaderboardBody.innerHTML = `<tr><td class="error" colspan="7">${escapeHtml(error.message)}</td></tr>`;
-    els.positionsBody.innerHTML = `<tr><td class="error" colspan="8">${escapeHtml(error.message)}</td></tr>`;
-    els.dataNote.textContent = "Could not load the Google Sheet data.";
-    els.statsBody.innerHTML = `<tr><td class="error" colspan="5">${escapeHtml(error.message)}</td></tr>`;
-    els.duoMatrix.innerHTML = `<p class="error">${escapeHtml(error.message)}</p>`;
+    setHtml(els.leaderboardBody, `<tr><td class="error" colspan="7">${escapeHtml(error.message)}</td></tr>`);
+    setHtml(els.positionsBody, `<tr><td class="error" colspan="8">${escapeHtml(error.message)}</td></tr>`);
+    setText(els.dataNote, "Could not load the Google Sheet data.");
+    setHtml(els.statsBody, `<tr><td class="error" colspan="5">${escapeHtml(error.message)}</td></tr>`);
+    setHtml(els.duoMatrix, `<p class="error">${escapeHtml(error.message)}</p>`);
   }
 }
 
