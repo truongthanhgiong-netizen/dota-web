@@ -9,9 +9,9 @@
   <body>
     <main class="page">
       <header class="hero">
-        <p class="eyebrow">Road to TI1x</p>
-        <h1>Dota Hero Draft Stats</h1>
-        <p class="intro">Pick and ban percentages calculated from the live Google Sheet.</p>
+        <p class="eyebrow">Road to TI2x</p>
+        <h1>10v10 Doto</h1>
+        <p class="intro">See the tabs below.</p>
       </header>
 
       <section class="summary" aria-label="Dataset summary">
@@ -19,19 +19,12 @@
           <span class="label">Games</span>
           <strong id="games-count">-</strong>
         </article>
-        <article class="summary-card">
-          <span class="label">Heroes</span>
-          <strong id="heroes-count">-</strong>
-        </article>
-        <article class="summary-card">
-          <span class="label">Picks</span>
-          <strong id="picks-count">-</strong>
-        </article>
-        <article class="summary-card">
-          <span class="label">Bans</span>
-          <strong id="bans-count">-</strong>
-        </article>
       </section>
+
+      <label class="scope-control">
+        <span>Show Stats</span>
+        <select id="game-scope"></select>
+      </label>
 
       <nav class="tabs" aria-label="Dashboard sections">
         <button class="tab-button active" type="button" data-tab="leaderboard">Leaderboard</button>
@@ -93,12 +86,10 @@
             <thead>
               <tr>
                 <th><button type="button" data-sort="hero">Hero</button></th>
-                <th><button type="button" data-sort="pickRate">Pick %</button></th>
-                <th><button type="button" data-sort="pickCount">Picks</button></th>
-                <th><button type="button" data-sort="pickWinRate">Pick Win %</button></th>
-                <th><button type="button" data-sort="banRate">Ban %</button></th>
-                <th><button type="button" data-sort="banCount">Bans</button></th>
-                <th><button type="button" data-sort="presenceRate">Presence %</button></th>
+                <th><button type="button" data-sort="pickRate">Pick Impact</button></th>
+                <th><button type="button" data-sort="pickWinRate">Pick Winrate</button></th>
+                <th><button type="button" data-sort="banRate">Ban Pressure</button></th>
+                <th><button type="button" data-sort="presenceRate">Draft Presence</button></th>
               </tr>
             </thead>
             <tbody id="stats-body"></tbody>

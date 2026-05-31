@@ -1,6 +1,7 @@
 const API_URL = "api/games.php";
 
 const state = {
+  allGames: [],
   games: [],
   stats: [],
   players: [],
@@ -11,15 +12,14 @@ const state = {
   sortDirection: "desc",
   positionSortKey: "player",
   positionSortDirection: "asc",
+  gameLimit: 0,
   selectedGame: "",
   query: "",
 };
 
 const els = {
   gamesCount: document.getElementById("games-count"),
-  heroesCount: document.getElementById("heroes-count"),
-  picksCount: document.getElementById("picks-count"),
-  bansCount: document.getElementById("bans-count"),
+  gameScope: document.getElementById("game-scope"),
   dataNote: document.getElementById("data-note"),
   statsBody: document.getElementById("stats-body"),
   leaderboardNote: document.getElementById("leaderboard-note"),
@@ -192,7 +192,7 @@ function sortLeaderboard(players) {
   let rank = 0;
   let groupIndex = 0;
   const ranked = sorted.map((record, index) => {
-    if (!previous || record.winRate !== previous.winRate) {
+    if (!previous || record.winRate.toFixed(2) !== previous.winRate.toFixed(2)) {
       rank = index + 1;
       groupIndex += 1;
     }
@@ -343,26 +343,27 @@ function renderStats() {
   updateSortButtons();
 
   if (rows.length === 0) {
-    els.statsBody.innerHTML = `<tr><td class="empty" colspan="7">No heroes found.</td></tr>`;
+    els.statsBody.innerHTML = `<tr><td class="empty" colspan="5">No heroes found.</td></tr>`;
     return;
   }
 
   els.statsBody.innerHTML = rows.map((stat) => `
     <tr>
       <td class="hero-name" data-label="Hero">${escapeHtml(stat.hero)}</td>
-      <td class="bar-cell" data-label="Pick %">
-        <div class="bar-label"><span>${formatPercent(stat.pickRate)}</span></div>
+      <td class="analysis-cell pick-analysis" data-label="Pick Impact">
+        <div class="analysis-top"><strong>${formatPercent(stat.pickRate)}</strong><span>${stat.pickCount} picks</span></div>
         ${meter(stat.pickRate, "pick-meter")}
       </td>
-      <td class="number" data-label="Picks">${stat.pickCount}</td>
-      <td class="number" data-label="Pick Win %">${formatPercent(stat.pickWinRate)} (${stat.pickWins}-${stat.pickLosses})</td>
-      <td class="bar-cell" data-label="Ban %">
-        <div class="bar-label"><span>${formatPercent(stat.banRate)}</span></div>
+      <td class="analysis-cell win-analysis" data-label="Pick Winrate">
+        <div class="analysis-top"><strong>${formatPercent(stat.pickWinRate)}</strong><span>${stat.pickWins}-${stat.pickLosses}</span></div>
+        ${meter(stat.pickWinRate, "win-meter")}
+      </td>
+      <td class="analysis-cell ban-analysis" data-label="Ban Pressure">
+        <div class="analysis-top"><strong>${formatPercent(stat.banRate)}</strong><span>${stat.banCount} bans</span></div>
         ${meter(stat.banRate, "ban-meter")}
       </td>
-      <td class="number" data-label="Bans">${stat.banCount}</td>
-      <td class="bar-cell" data-label="Presence %">
-        <div class="bar-label"><span>${formatPercent(stat.presenceRate)}</span></div>
+      <td class="analysis-cell presence-analysis" data-label="Draft Presence">
+        <div class="analysis-top"><strong>${formatPercent(stat.presenceRate)}</strong><span>${stat.gameCount} games</span></div>
         ${meter(stat.presenceRate, "presence-meter")}
       </td>
     </tr>
@@ -370,20 +371,40 @@ function renderStats() {
 }
 
 function renderSummary() {
-  const pickCount = state.games.reduce((sum, game) => sum + game.heroes.filter((hero) => hero.type === "pick").length, 0);
-  const banCount = state.games.reduce((sum, game) => sum + game.heroes.filter((hero) => hero.type === "ban").length, 0);
-
   els.gamesCount.textContent = state.games.length;
-  els.heroesCount.textContent = state.stats.length;
-  els.picksCount.textContent = pickCount;
-  els.bansCount.textContent = banCount;
   els.dataNote.textContent = `Percentages use ${state.games.length} game${state.games.length === 1 ? "" : "s"} as the denominator.`;
 }
 
-function leaderboardRowClass(record) {
-  if (record.groupCount > 1 && record.groupIndex === record.groupCount) {
-    return "leaderboard-low";
+function populateGameScope() {
+  els.gameScope.innerHTML = state.allGames.map((game, index) => `
+    <option value="${index + 1}">After ${escapeHtml(game.name)}</option>
+  `).join("");
+  state.gameLimit = state.allGames.length;
+  els.gameScope.value = String(state.gameLimit);
+}
+
+function applyGameScope() {
+  state.games = state.allGames.slice(0, state.gameLimit);
+  state.stats = calculateStats(state.games);
+  const playerStats = calculatePlayerStats(state.games);
+  state.players = playerStats.players;
+  state.leaderboard = playerStats.leaderboard;
+  state.positionStats = playerStats.positionStats;
+  state.duos = playerStats.duos;
+
+  if (!state.games.some((game) => game.name === state.selectedGame)) {
+    state.selectedGame = "";
   }
+
+  renderSummary();
+  renderLeaderboard();
+  renderPositionStats();
+  renderStats();
+  renderDuoMatrix();
+  renderGames();
+}
+
+function leaderboardRowClass(record) {
   if (record.groupIndex === 1) {
     return "leaderboard-gold";
   }
@@ -392,6 +413,9 @@ function leaderboardRowClass(record) {
   }
   if (record.groupIndex === 3) {
     return "leaderboard-bronze";
+  }
+  if (record.groupIndex === record.groupCount && record.groupCount > 3) {
+    return "leaderboard-low";
   }
   return "";
 }
@@ -472,7 +496,7 @@ function renderDuoMatrix() {
 
       const total = record.wins + record.losses;
       const winRate = Math.round(rate(record.wins, total));
-      return `<td class="${duoCellClass(winRate)}" data-label="${escapeHtml(colPlayer)}">${winRate}% (${record.wins}-${record.losses})</td>`;
+      return `<td class="${duoCellClass(winRate)}" data-label="${escapeHtml(colPlayer)}"><span>${winRate}%</span><small>(${record.wins}-${record.losses})</small></td>`;
     }).join("");
 
     return `<tr><th scope="row" title="${escapeHtml(rowPlayer)}">${escapeHtml(rowPlayer)}</th>${cells}</tr>`;
@@ -711,6 +735,11 @@ function setupEvents() {
     renderStats();
   });
 
+  els.gameScope.addEventListener("change", (event) => {
+    state.gameLimit = Number(event.target.value) || state.allGames.length;
+    applyGameScope();
+  });
+
   for (const button of els.sortButtons) {
     button.addEventListener("click", () => {
       const key = button.dataset.sort;
@@ -766,25 +795,14 @@ async function init() {
       throw new Error(data.message || "The Google Sheet converter failed.");
     }
 
-    state.games = Array.isArray(data.games) ? data.games : [];
-    state.stats = calculateStats(state.games);
-    const playerStats = calculatePlayerStats(state.games);
-    state.players = playerStats.players;
-    state.leaderboard = playerStats.leaderboard;
-    state.positionStats = playerStats.positionStats;
-    state.duos = playerStats.duos;
-
-    renderSummary();
-    renderLeaderboard();
-    renderPositionStats();
-    renderStats();
-    renderDuoMatrix();
-    renderGames();
+    state.allGames = Array.isArray(data.games) ? data.games : [];
+    populateGameScope();
+    applyGameScope();
   } catch (error) {
     els.leaderboardBody.innerHTML = `<tr><td class="error" colspan="7">${escapeHtml(error.message)}</td></tr>`;
     els.positionsBody.innerHTML = `<tr><td class="error" colspan="8">${escapeHtml(error.message)}</td></tr>`;
     els.dataNote.textContent = "Could not load the Google Sheet data.";
-    els.statsBody.innerHTML = `<tr><td class="error" colspan="7">${escapeHtml(error.message)}</td></tr>`;
+    els.statsBody.innerHTML = `<tr><td class="error" colspan="5">${escapeHtml(error.message)}</td></tr>`;
     els.duoMatrix.innerHTML = `<p class="error">${escapeHtml(error.message)}</p>`;
   }
 }

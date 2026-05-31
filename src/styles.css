@@ -86,7 +86,7 @@ h2 {
 
 .summary {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: minmax(180px, 280px);
   gap: 14px;
   margin-bottom: 18px;
 }
@@ -118,6 +118,32 @@ h2 {
 .summary-card strong {
   font-size: 2.2rem;
   letter-spacing: -0.06em;
+}
+
+.scope-control {
+  display: grid;
+  gap: 8px;
+  width: min(280px, 100%);
+  margin-bottom: 18px;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.scope-control select {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 12px 16px;
+  background: rgba(0, 0, 0, 0.22);
+  color: var(--text);
+  outline: none;
+}
+
+.scope-control select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px rgba(217, 164, 65, 0.15);
 }
 
 .tabs {
@@ -334,6 +360,15 @@ tbody tr:hover {
   justify-content: space-between;
 }
 
+.positions-table th:nth-child(7),
+.positions-table td:nth-child(7) {
+  border-left: 3px solid rgba(217, 164, 65, 0.7);
+}
+
+.positions-table th:nth-child(n + 7) {
+  background: rgba(217, 164, 65, 0.18);
+}
+
 .positions-table td {
   white-space: nowrap;
 }
@@ -355,6 +390,60 @@ tbody tr:hover {
 
 .hero-name {
   font-weight: 800;
+}
+
+.stats-table {
+  min-width: 980px;
+}
+
+.stats-table th:first-child,
+.stats-table td:first-child {
+  width: 22%;
+}
+
+.stats-table th:not(:first-child),
+.stats-table td:not(:first-child) {
+  width: 19.5%;
+}
+
+.analysis-cell {
+  min-width: 150px;
+}
+
+.analysis-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.analysis-top strong {
+  font-size: clamp(1.05rem, 1.7vw, 1.45rem);
+  letter-spacing: -0.04em;
+}
+
+.analysis-top span {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.pick-analysis {
+  background: linear-gradient(90deg, rgba(87, 199, 133, 0.1), transparent 70%);
+}
+
+.win-analysis {
+  background: linear-gradient(90deg, rgba(91, 141, 239, 0.1), transparent 70%);
+}
+
+.ban-analysis {
+  background: linear-gradient(90deg, rgba(255, 107, 107, 0.1), transparent 70%);
+}
+
+.presence-analysis {
+  background: linear-gradient(90deg, rgba(217, 164, 65, 0.1), transparent 70%);
 }
 
 .number {
@@ -394,6 +483,10 @@ tbody tr:hover {
   background: linear-gradient(90deg, var(--ban), #ffc0c0);
 }
 
+.win-meter span {
+  background: linear-gradient(90deg, #5b8def, #b9cdfd);
+}
+
 .presence-meter span {
   background: linear-gradient(90deg, var(--accent), #ffe2a3);
 }
@@ -414,20 +507,22 @@ tbody tr:hover {
   border-collapse: separate;
   border-spacing: 0;
   table-layout: fixed;
-  font-size: clamp(0.42rem, calc(10rem / var(--player-count)), 0.82rem);
+  font-size: clamp(0.46rem, calc(9.2rem / var(--player-count)), 0.86rem);
 }
 
 .duo-table th,
 .duo-table td {
   min-width: 0;
-  padding: 6px 2px;
+  padding: 3px 0;
   border-right: 1px solid rgba(0, 0, 0, 0.22);
   border-bottom: 1px solid rgba(0, 0, 0, 0.22);
   color: #071018;
   text-align: center;
-  line-height: 1.1;
+  line-height: 1;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: normal;
+  word-break: break-word;
 }
 
 .duo-table thead th {
@@ -441,11 +536,12 @@ tbody tr:hover {
 }
 
 .duo-table thead th:not(:first-child) {
-  height: 92px;
-  padding: 8px 1px;
-  vertical-align: bottom;
-  writing-mode: vertical-rl;
-  transform: rotate(180deg);
+  height: auto;
+  padding: 5px 0;
+  vertical-align: middle;
+  writing-mode: horizontal-tb;
+  transform: none;
+  word-break: break-word;
 }
 
 .duo-table tbody th {
@@ -457,7 +553,16 @@ tbody tr:hover {
   font-weight: 700;
   text-transform: none;
   letter-spacing: 0;
-  width: clamp(54px, 9vw, 92px);
+  width: clamp(28px, 4.2vw, 54px);
+}
+
+.duo-table td span,
+.duo-table td small {
+  display: block;
+}
+
+.duo-table td small {
+  font-size: 0.72em;
 }
 
 .duo-table thead th:first-child {
@@ -481,9 +586,12 @@ tbody tr:hover {
   background: #e06666;
 }
 
-.duo-self,
 .duo-empty {
   background: #cccccc;
+}
+
+.duo-self {
+  background: #ffffff;
 }
 
 .games-list {
@@ -835,7 +943,7 @@ tbody tr:hover {
   }
 
   .summary {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: minmax(180px, 280px);
   }
 
   .panel-header {
