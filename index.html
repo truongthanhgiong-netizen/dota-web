@@ -31,6 +31,8 @@
         <button class="tab-button" type="button" data-tab="draft">Picking and Banning</button>
         <button class="tab-button" type="button" data-tab="duos">Duo Matrix</button>
         <button class="tab-button" type="button" data-tab="positions">Positions</button>
+        <button class="tab-button" type="button" data-tab="profiles">Profiles</button>
+        <button class="tab-button" type="button" data-tab="lookup">Game Lookup</button>
         <button class="tab-button" type="button" data-tab="games">Games</button>
       </nav>
 
@@ -131,6 +133,42 @@
             <tbody id="positions-body"></tbody>
           </table>
         </div>
+      </section>
+
+      <section id="profiles-panel" class="panel tab-panel" aria-labelledby="profiles-heading" hidden>
+        <div class="panel-header profile-header">
+          <div>
+            <h2 id="profiles-heading">Player Profiles</h2>
+            <p id="profiles-note">Hero records by player, or search a hero to compare all players.</p>
+          </div>
+          <label class="profile-control">
+            <span>Player</span>
+            <select id="profile-player"></select>
+          </label>
+          <label class="profile-control">
+            <span>Hero Search</span>
+            <input id="profile-hero-search" type="search" placeholder="Hero name" autocomplete="off">
+          </label>
+        </div>
+        <div id="profile-content" class="profile-content"></div>
+      </section>
+
+      <section id="lookup-panel" class="panel tab-panel" aria-labelledby="lookup-heading" hidden>
+        <div class="panel-header lookup-header">
+          <div>
+            <h2 id="lookup-heading">Game Lookup</h2>
+            <p id="lookup-note">Search by player and hero, then open the matching game details.</p>
+          </div>
+          <label class="lookup-control">
+            <span>Player</span>
+            <input id="lookup-player" type="search" placeholder="Player name" autocomplete="off">
+          </label>
+          <label class="lookup-control">
+            <span>Hero</span>
+            <input id="lookup-hero" type="search" placeholder="Hero name" autocomplete="off">
+          </label>
+        </div>
+        <div id="lookup-results" class="lookup-results"></div>
       </section>
 
       <section id="games-panel" class="panel games-panel tab-panel" aria-labelledby="games-heading" hidden>

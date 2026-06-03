@@ -7,12 +7,17 @@ const state = {
   players: [],
   leaderboard: [],
   positionStats: [],
+  profileStats: [],
   duos: new Map(),
   sortKey: "presenceRate",
   sortDirection: "desc",
   positionSortKey: "player",
   positionSortDirection: "asc",
   gameLimit: 0,
+  selectedProfilePlayer: "",
+  profileHeroQuery: "",
+  lookupPlayerQuery: "",
+  lookupHeroQuery: "",
   selectedGame: "",
   query: "",
 };
@@ -26,6 +31,13 @@ const els = {
   leaderboardBody: document.getElementById("leaderboard-body"),
   positionsNote: document.getElementById("positions-note"),
   positionsBody: document.getElementById("positions-body"),
+  profilesNote: document.getElementById("profiles-note"),
+  profilePlayer: document.getElementById("profile-player"),
+  profileHeroSearch: document.getElementById("profile-hero-search"),
+  profileContent: document.getElementById("profile-content"),
+  lookupPlayer: document.getElementById("lookup-player"),
+  lookupHero: document.getElementById("lookup-hero"),
+  lookupResults: document.getElementById("lookup-results"),
   duoNote: document.getElementById("duo-note"),
   duoMatrix: document.getElementById("duo-matrix"),
   gamesList: document.getElementById("games-list"),
@@ -53,6 +65,17 @@ function setHtml(element, value) {
 function setValue(element, value) {
   if (element) {
     element.value = value;
+  }
+}
+
+function activateTab(tab) {
+  for (const tabButton of els.tabButtons) {
+    tabButton.classList.toggle("active", tabButton.dataset.tab === tab);
+  }
+  for (const panel of els.tabPanels) {
+    const active = panel.id === `${tab}-panel`;
+    panel.hidden = !active;
+    panel.classList.toggle("active", active);
   }
 }
 
@@ -187,6 +210,40 @@ function addLineupPositionResults(positionStats, lineup, side, won) {
   });
 }
 
+function addProfileHeroResult(profileStats, playerName, heroName, won) {
+  if (!playerName || !heroName) {
+    return;
+  }
+
+  const profile = profileStats.get(playerName) || { player: playerName, heroes: new Map() };
+  const hero = profile.heroes.get(heroName) || { hero: heroName, wins: 0, losses: 0 };
+  if (won) {
+    hero.wins += 1;
+  } else {
+    hero.losses += 1;
+  }
+
+  profile.heroes.set(heroName, hero);
+  profileStats.set(playerName, profile);
+}
+
+function addHeroLockProfileResults(profileStats, game) {
+  if (!Array.isArray(game.heroLocks)) {
+    return;
+  }
+
+  const radiantWon = game.result === "1-0";
+  const direWon = game.result === "0-1";
+  if (!radiantWon && !direWon) {
+    return;
+  }
+
+  for (const lock of game.heroLocks) {
+    addProfileHeroResult(profileStats, lock.radiantPlayer, lock.radiantHero, radiantWon);
+    addProfileHeroResult(profileStats, lock.direPlayer, lock.direHero, direWon);
+  }
+}
+
 function sortLeaderboard(players) {
   const sorted = Array.from(players.values())
     .map((record) => ({
@@ -225,11 +282,13 @@ function sortLeaderboard(players) {
 function calculatePlayerStats(games) {
   const players = new Map();
   const positionStats = new Map();
+  const profileStats = new Map();
   const duos = new Map();
 
   for (const game of games) {
     const radiant = playerLineup(game, "radiant");
     const dire = playerLineup(game, "dire");
+    addHeroLockProfileResults(profileStats, game);
 
     if (game.result === "1-0") {
       addLineupResult(players, radiant, true);
@@ -263,6 +322,7 @@ function calculatePlayerStats(games) {
     players: leaderboard.map((record) => record.player),
     leaderboard,
     positionStats: leaderboard.map((record) => positionStats.get(record.player) || emptyPositionRecord(record.player)),
+    profileStats: leaderboard.map((record) => profileStats.get(record.player) || { player: record.player, heroes: new Map() }),
     duos,
   };
 }
@@ -408,6 +468,7 @@ function applyGameScope() {
   state.players = playerStats.players;
   state.leaderboard = playerStats.leaderboard;
   state.positionStats = playerStats.positionStats;
+  state.profileStats = playerStats.profileStats;
   state.duos = playerStats.duos;
 
   if (!state.games.some((game) => game.name === state.selectedGame)) {
@@ -417,6 +478,8 @@ function applyGameScope() {
   renderSummary();
   renderLeaderboard();
   renderPositionStats();
+  renderPlayerProfile();
+  renderLookupResults();
   renderStats();
   renderDuoMatrix();
   renderGames();
@@ -478,6 +541,179 @@ function renderPositionStats() {
   `).join(""));
 
   setText(els.positionsNote, `${state.positionStats.length} player${state.positionStats.length === 1 ? "" : "s"} with position records.`);
+}
+
+function heroRecordRows(records) {
+  return records.map((record) => {
+    const total = record.wins + record.losses;
+    const winRate = rate(record.wins, total);
+    return `
+      <tr>
+        <td class="hero-name" data-label="Hero">${escapeHtml(record.hero)}</td>
+        <td class="number ${winrateClass(record)}" data-label="Winrate">${formatRecord(record)}</td>
+        <td class="number" data-label="Games">${total}</td>
+      </tr>
+    `;
+  }).join("");
+}
+
+function sortedHeroRecords(profile) {
+  return Array.from(profile.heroes.values()).sort((a, b) => {
+    const aTotal = a.wins + a.losses;
+    const bTotal = b.wins + b.losses;
+    const aRate = rate(a.wins, aTotal);
+    const bRate = rate(b.wins, bTotal);
+    if (bTotal !== aTotal) {
+      return bTotal - aTotal;
+    }
+    if (bRate !== aRate) {
+      return bRate - aRate;
+    }
+    return a.hero.localeCompare(b.hero);
+  });
+}
+
+function populateProfilePlayers() {
+  setHtml(els.profilePlayer, state.profileStats.map((profile) => `
+    <option value="${escapeHtml(profile.player)}">${escapeHtml(profile.player)}</option>
+  `).join(""));
+
+  if (!state.profileStats.some((profile) => profile.player === state.selectedProfilePlayer)) {
+    state.selectedProfilePlayer = state.profileStats[0]?.player || "";
+  }
+  setValue(els.profilePlayer, state.selectedProfilePlayer);
+}
+
+function renderHeroSearchProfiles(query) {
+  const matches = [];
+  for (const profile of state.profileStats) {
+    for (const record of profile.heroes.values()) {
+      if (record.hero.toLowerCase().includes(query)) {
+        matches.push({ ...record, player: profile.player });
+      }
+    }
+  }
+
+  matches.sort((a, b) => {
+    const aTotal = a.wins + a.losses;
+    const bTotal = b.wins + b.losses;
+    const aRate = rate(a.wins, aTotal);
+    const bRate = rate(b.wins, bTotal);
+    if (bRate !== aRate) {
+      return bRate - aRate;
+    }
+    if (bTotal !== aTotal) {
+      return bTotal - aTotal;
+    }
+    return a.player.localeCompare(b.player);
+  });
+
+  setHtml(els.profileContent, `
+    <div class="profile-mode-note">Hero search: <strong>${escapeHtml(state.profileHeroQuery)}</strong></div>
+    <div class="table-wrap profile-table-wrap">
+      <table class="profile-table">
+        <thead><tr><th>Player</th><th>Hero</th><th>Winrate</th><th>Games</th></tr></thead>
+        <tbody>${matches.map((record) => `<tr><td class="leaderboard-player">${escapeHtml(record.player)}</td><td>${escapeHtml(record.hero)}</td><td class="number ${winrateClass(record)}">${formatRecord(record)}</td><td class="number">${record.wins + record.losses}</td></tr>`).join("") || `<tr><td class="empty" colspan="4">No players found for that hero.</td></tr>`}</tbody>
+      </table>
+    </div>
+  `);
+}
+
+function renderPlayerProfile() {
+  populateProfilePlayers();
+
+  const query = state.profileHeroQuery.trim().toLowerCase();
+  if (query) {
+    renderHeroSearchProfiles(query);
+    setText(els.profilesNote, "Showing all players who picked matching heroes.");
+    return;
+  }
+
+  const profile = state.profileStats.find((item) => item.player === state.selectedProfilePlayer) || state.profileStats[0];
+  if (!profile) {
+    setHtml(els.profileContent, `<p class="empty">No player hero data found.</p>`);
+    setText(els.profilesNote, "No profile data available yet.");
+    return;
+  }
+
+  const records = sortedHeroRecords(profile);
+  setText(els.profilesNote, `${profile.player} has picked ${records.length} unique hero${records.length === 1 ? "" : "es"}.`);
+  setHtml(els.profileContent, `
+    <div class="profile-title-card">
+      <span class="label">Selected Player</span>
+      <strong>${escapeHtml(profile.player)}</strong>
+    </div>
+    <div class="table-wrap profile-table-wrap">
+      <table class="profile-table">
+        <thead><tr><th>Hero</th><th>Winrate</th><th>Games</th></tr></thead>
+        <tbody>${heroRecordRows(records) || `<tr><td class="empty" colspan="3">No picked heroes recorded for this player.</td></tr>`}</tbody>
+      </table>
+    </div>
+  `);
+}
+
+function gameHeroLocks(game) {
+  return Array.isArray(game.heroLocks) ? game.heroLocks : [];
+}
+
+function lockMatches(lock, playerQuery, heroQuery) {
+  const radiantPlayer = String(lock.radiantPlayer || "").toLowerCase();
+  const direPlayer = String(lock.direPlayer || "").toLowerCase();
+  const radiantHero = String(lock.radiantHero || "").toLowerCase();
+  const direHero = String(lock.direHero || "").toLowerCase();
+
+  const playerMatches = !playerQuery || radiantPlayer.includes(playerQuery) || direPlayer.includes(playerQuery);
+  const heroMatches = !heroQuery || radiantHero.includes(heroQuery) || direHero.includes(heroQuery);
+  return playerMatches && heroMatches;
+}
+
+function matchingLocks(game, playerQuery, heroQuery) {
+  return gameHeroLocks(game).filter((lock) => lockMatches(lock, playerQuery, heroQuery));
+}
+
+function renderLookupResults() {
+  const playerQuery = state.lookupPlayerQuery.trim().toLowerCase();
+  const heroQuery = state.lookupHeroQuery.trim().toLowerCase();
+
+  if (!playerQuery && !heroQuery) {
+    setHtml(els.lookupResults, `<p class="empty">Enter a player name, a hero name, or both.</p>`);
+    return;
+  }
+
+  const matches = state.games
+    .map((game) => ({ game, locks: matchingLocks(game, playerQuery, heroQuery) }))
+    .filter((match) => match.locks.length > 0);
+
+  setHtml(els.lookupResults, `
+    <div class="lookup-count">${matches.length} matching game${matches.length === 1 ? "" : "s"}</div>
+    <div class="lookup-list">
+      ${matches.map(({ game, locks }) => `
+        <button type="button" class="lookup-card" data-game="${escapeHtml(game.name)}">
+          <strong>${escapeHtml(game.name)}</strong>
+          <span>${escapeHtml(game.date || "No date")} · ${escapeHtml(game.result || "No result")}</span>
+          <span>Match ID: ${escapeHtml(game.matchId || "No match ID")}</span>
+          <em>${locks.map((lock) => {
+            const radiant = `${lock.radiantPlayer || ""}${lock.radiantHero ? ` on ${lock.radiantHero}` : ""}`.trim();
+            const dire = `${lock.direPlayer || ""}${lock.direHero ? ` on ${lock.direHero}` : ""}`.trim();
+            return [radiant, dire].filter(Boolean).join(" · ");
+          }).join(" | ")}</em>
+        </button>
+      `).join("") || `<p class="empty">No matching games found.</p>`}
+    </div>
+  `);
+
+  for (const card of els.lookupResults?.querySelectorAll("[data-game]") || []) {
+    card.addEventListener("click", () => openGameFromLookup(card.dataset.game));
+  }
+}
+
+function openGameFromLookup(gameName) {
+  state.selectedGame = gameName;
+  history.replaceState({ tab: "lookup" }, "", "#lookup");
+  history.pushState({ tab: "games", game: gameName }, "", `#game-${encodeURIComponent(gameName)}`);
+  activateTab("games");
+  renderGames();
+  els.gameDetail?.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 function duoCellClass(winRate) {
@@ -758,6 +994,28 @@ function setupEvents() {
     applyGameScope();
   });
 
+  els.profilePlayer?.addEventListener("change", (event) => {
+    state.selectedProfilePlayer = event.target.value;
+    state.profileHeroQuery = "";
+    setValue(els.profileHeroSearch, "");
+    renderPlayerProfile();
+  });
+
+  els.profileHeroSearch?.addEventListener("input", (event) => {
+    state.profileHeroQuery = event.target.value;
+    renderPlayerProfile();
+  });
+
+  els.lookupPlayer?.addEventListener("input", (event) => {
+    state.lookupPlayerQuery = event.target.value;
+    renderLookupResults();
+  });
+
+  els.lookupHero?.addEventListener("input", (event) => {
+    state.lookupHeroQuery = event.target.value;
+    renderLookupResults();
+  });
+
   for (const button of els.sortButtons) {
     button.addEventListener("click", () => {
       const key = button.dataset.sort;
@@ -786,17 +1044,21 @@ function setupEvents() {
 
   for (const button of els.tabButtons) {
     button.addEventListener("click", () => {
-      const tab = button.dataset.tab;
-      for (const tabButton of els.tabButtons) {
-        tabButton.classList.toggle("active", tabButton.dataset.tab === tab);
-      }
-      for (const panel of els.tabPanels) {
-        const active = panel.id === `${tab}-panel`;
-        panel.hidden = !active;
-        panel.classList.toggle("active", active);
-      }
+      activateTab(button.dataset.tab);
     });
   }
+
+  window.addEventListener("popstate", (event) => {
+    const tab = event.state?.tab;
+    if (tab === "lookup") {
+      activateTab(tab);
+      renderLookupResults();
+    } else if (tab === "games") {
+      state.selectedGame = event.state.game || state.selectedGame;
+      activateTab(tab);
+      renderGames();
+    }
+  });
 }
 
 async function init() {
@@ -819,6 +1081,7 @@ async function init() {
   } catch (error) {
     setHtml(els.leaderboardBody, `<tr><td class="error" colspan="7">${escapeHtml(error.message)}</td></tr>`);
     setHtml(els.positionsBody, `<tr><td class="error" colspan="8">${escapeHtml(error.message)}</td></tr>`);
+    setHtml(els.profileContent, `<p class="error">${escapeHtml(error.message)}</p>`);
     setText(els.dataNote, "Could not load the Google Sheet data.");
     setHtml(els.statsBody, `<tr><td class="error" colspan="5">${escapeHtml(error.message)}</td></tr>`);
     setHtml(els.duoMatrix, `<p class="error">${escapeHtml(error.message)}</p>`);

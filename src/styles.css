@@ -388,6 +388,149 @@ tbody tr:hover {
   color: #ffd1d1;
 }
 
+.profile-header {
+  align-items: end;
+}
+
+.profile-control {
+  display: grid;
+  gap: 8px;
+  min-width: min(240px, 100%);
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.profile-control select,
+.profile-control input {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 12px 16px;
+  background: rgba(0, 0, 0, 0.22);
+  color: var(--text);
+  outline: none;
+}
+
+.profile-content {
+  padding: 18px;
+}
+
+.profile-title-card {
+  width: min(320px, 100%);
+  margin-bottom: 14px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.profile-title-card strong {
+  display: block;
+  font-size: 1.5rem;
+}
+
+.profile-mode-note {
+  margin-bottom: 14px;
+  color: var(--muted);
+}
+
+.profile-table {
+  min-width: 640px;
+}
+
+.profile-table td.winrate-high,
+.profile-table td.winrate-average,
+.profile-table td.winrate-low {
+  font-weight: 900;
+}
+
+.profile-table td.winrate-high {
+  background: rgba(87, 199, 133, 0.22);
+  color: #d9ffe8;
+}
+
+.profile-table td.winrate-average {
+  background: rgba(217, 164, 65, 0.22);
+  color: #fff0c7;
+}
+
+.profile-table td.winrate-low {
+  background: rgba(255, 107, 107, 0.22);
+  color: #ffd1d1;
+}
+
+.lookup-header {
+  align-items: end;
+}
+
+.lookup-control {
+  display: grid;
+  gap: 8px;
+  min-width: min(260px, 100%);
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.lookup-control input {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 12px 16px;
+  background: rgba(0, 0, 0, 0.22);
+  color: var(--text);
+  outline: none;
+}
+
+.lookup-results {
+  padding: 18px;
+}
+
+.lookup-count {
+  margin-bottom: 12px;
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.lookup-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
+}
+
+.lookup-card {
+  display: grid;
+  gap: 6px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 14px;
+  background: rgba(0, 0, 0, 0.18);
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.lookup-card:hover {
+  border-color: rgba(217, 164, 65, 0.72);
+  background: rgba(217, 164, 65, 0.12);
+}
+
+.lookup-card span,
+.lookup-card em {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.lookup-card em {
+  font-style: normal;
+  line-height: 1.35;
+}
+
 .hero-name {
   font-weight: 800;
 }
