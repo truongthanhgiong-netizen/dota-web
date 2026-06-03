@@ -20,7 +20,9 @@ body {
   margin: 0;
   min-height: 100vh;
   background:
-    radial-gradient(circle at top left, rgba(217, 164, 65, 0.14), transparent 34rem),
+    linear-gradient(180deg, rgba(9, 12, 17, 0.62), rgba(9, 12, 17, 0.92)),
+    radial-gradient(circle at top left, rgba(217, 164, 65, 0.16), transparent 34rem),
+    url("../wallpaper 2 fixed.jpg") center top / cover fixed,
     linear-gradient(145deg, #090c11 0%, var(--bg) 48%, #10151d 100%);
   color: var(--text);
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -94,7 +96,7 @@ h2 {
 .summary-card,
 .panel {
   border: 1px solid rgba(255, 255, 255, 0.08);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.025));
+  background: linear-gradient(180deg, rgba(13, 17, 23, 0.82), rgba(13, 17, 23, 0.68));
   box-shadow: var(--shadow);
   backdrop-filter: blur(16px);
 }
@@ -192,6 +194,24 @@ h2 {
 
 .panel-header p {
   margin-bottom: 0;
+}
+
+.leaderboard-header,
+.duo-header {
+  justify-content: center;
+  text-align: center;
+}
+
+.duo-panel {
+  width: fit-content;
+  max-width: calc(100vw - 32px);
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.duo-matrix {
+  display: flex;
+  justify-content: center;
 }
 
 .search,
@@ -462,48 +482,48 @@ tbody tr:hover {
   color: #ffd1d1;
 }
 
-.lookup-header {
-  align-items: end;
+.profile-hero-button {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 900;
+  text-align: left;
+  text-decoration: underline;
+  text-decoration-color: rgba(217, 164, 65, 0.55);
+  text-underline-offset: 4px;
 }
 
-.lookup-control {
-  display: grid;
-  gap: 8px;
-  min-width: min(260px, 100%);
-  color: var(--muted);
-  font-size: 0.82rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+.profile-hero-button:hover {
+  color: var(--gold);
 }
 
-.lookup-control input {
-  width: 100%;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  padding: 12px 16px;
-  background: rgba(0, 0, 0, 0.22);
-  color: var(--text);
-  outline: none;
+.profile-table tr.selected-profile-hero {
+  outline: 2px solid rgba(217, 164, 65, 0.5);
+  outline-offset: -2px;
 }
 
-.lookup-results {
-  padding: 18px;
-}
-
-.lookup-count {
-  margin-bottom: 12px;
+.profile-game-empty,
+.profile-game-count {
+  margin-top: 14px;
   color: var(--muted);
   font-weight: 800;
 }
 
-.lookup-list {
+.profile-game-results {
+  margin-top: 18px;
+}
+
+.profile-game-list {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 12px;
+  margin-top: 12px;
 }
 
-.lookup-card {
+.profile-game-card {
   display: grid;
   gap: 6px;
   border: 1px solid var(--line);
@@ -515,20 +535,14 @@ tbody tr:hover {
   text-align: left;
 }
 
-.lookup-card:hover {
+.profile-game-card:hover {
   border-color: rgba(217, 164, 65, 0.72);
   background: rgba(217, 164, 65, 0.12);
 }
 
-.lookup-card span,
-.lookup-card em {
+.profile-game-card span {
   color: var(--muted);
   font-size: 0.9rem;
-}
-
-.lookup-card em {
-  font-style: normal;
-  line-height: 1.35;
 }
 
 .hero-name {
@@ -639,15 +653,16 @@ tbody tr:hover {
 }
 
 .duo-table-wrap {
+  max-width: calc(100vw - 32px);
   max-height: 70vh;
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow: auto;
   display: flex;
   justify-content: center;
 }
 
 .duo-table {
-  width: min(100%, calc((var(--player-count) + 1) * 82px));
+  width: calc((var(--player-count) + 1) * 82px);
+  max-width: 100%;
   min-width: 0;
   border-collapse: separate;
   border-spacing: 0;
@@ -663,6 +678,7 @@ tbody tr:hover {
   border-bottom: 1px solid rgba(0, 0, 0, 0.22);
   color: #071018;
   text-align: center;
+  vertical-align: middle;
   line-height: 1;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -844,11 +860,6 @@ tbody tr:hover {
 
 .detail-section {
   margin-top: 20px;
-}
-
-.detail-note {
-  margin: 8px 0 12px;
-  color: var(--muted);
 }
 
 .mini-grid {

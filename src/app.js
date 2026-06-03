@@ -16,8 +16,7 @@ const state = {
   gameLimit: 0,
   selectedProfilePlayer: "",
   profileHeroQuery: "",
-  lookupPlayerQuery: "",
-  lookupHeroQuery: "",
+  selectedProfileHero: "",
   selectedGame: "",
   query: "",
 };
@@ -35,9 +34,6 @@ const els = {
   profilePlayer: document.getElementById("profile-player"),
   profileHeroSearch: document.getElementById("profile-hero-search"),
   profileContent: document.getElementById("profile-content"),
-  lookupPlayer: document.getElementById("lookup-player"),
-  lookupHero: document.getElementById("lookup-hero"),
-  lookupResults: document.getElementById("lookup-results"),
   duoNote: document.getElementById("duo-note"),
   duoMatrix: document.getElementById("duo-matrix"),
   gamesList: document.getElementById("games-list"),
@@ -336,6 +332,31 @@ function formatRecord(record) {
   return total === 0 ? "" : `${formatPercent(rate(record.wins, total))} (${record.wins}-${record.losses})`;
 }
 
+function formatDate(value) {
+  if (!value) {
+    return "No date";
+  }
+
+  const text = String(value).trim();
+  const isoMatch = text.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if (isoMatch) {
+    return `${isoMatch[3].padStart(2, "0")}/${isoMatch[2].padStart(2, "0")}/${isoMatch[1]}`;
+  }
+
+  const slashMatch = text.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+  if (slashMatch) {
+    const year = slashMatch[3].length === 2 ? `20${slashMatch[3]}` : slashMatch[3];
+    return `${slashMatch[1].padStart(2, "0")}/${slashMatch[2].padStart(2, "0")}/${year}`;
+  }
+
+  const parsed = new Date(text);
+  if (!Number.isNaN(parsed.getTime())) {
+    return `${String(parsed.getDate()).padStart(2, "0")}/${String(parsed.getMonth() + 1).padStart(2, "0")}/${parsed.getFullYear()}`;
+  }
+
+  return text;
+}
+
 function winrateClass(record) {
   const total = record.wins + record.losses;
   if (total === 0) {
@@ -479,7 +500,6 @@ function applyGameScope() {
   renderLeaderboard();
   renderPositionStats();
   renderPlayerProfile();
-  renderLookupResults();
   renderStats();
   renderDuoMatrix();
   renderGames();
@@ -546,10 +566,9 @@ function renderPositionStats() {
 function heroRecordRows(records) {
   return records.map((record) => {
     const total = record.wins + record.losses;
-    const winRate = rate(record.wins, total);
     return `
-      <tr>
-        <td class="hero-name" data-label="Hero">${escapeHtml(record.hero)}</td>
+      <tr class="${record.hero === state.selectedProfileHero ? "selected-profile-hero" : ""}">
+        <td class="hero-name" data-label="Hero"><button type="button" class="profile-hero-button" data-profile-hero="${escapeHtml(record.hero)}">${escapeHtml(record.hero)}</button></td>
         <td class="number ${winrateClass(record)}" data-label="Winrate">${formatRecord(record)}</td>
         <td class="number" data-label="Games">${total}</td>
       </tr>
@@ -619,6 +638,59 @@ function renderHeroSearchProfiles(query) {
   `);
 }
 
+function gameHeroLocks(game) {
+  return Array.isArray(game.heroLocks) ? game.heroLocks : [];
+}
+
+function lockHasPlayerHero(lock, playerName, heroName) {
+  return (lock.radiantPlayer === playerName && lock.radiantHero === heroName) || (lock.direPlayer === playerName && lock.direHero === heroName);
+}
+
+function profileHeroGames(playerName, heroName) {
+  if (!playerName || !heroName) {
+    return [];
+  }
+
+  return state.games.filter((game) => gameHeroLocks(game).some((lock) => lockHasPlayerHero(lock, playerName, heroName)));
+}
+
+function profileHeroMatchup(game, playerName, heroName) {
+  const lock = gameHeroLocks(game).find((item) => lockHasPlayerHero(item, playerName, heroName));
+  if (!lock) {
+    return "No same-position matchup found";
+  }
+
+  const playerOnRadiant = lock.radiantPlayer === playerName && lock.radiantHero === heroName;
+  const opponentPlayer = playerOnRadiant ? lock.direPlayer : lock.radiantPlayer;
+  const opponentHero = playerOnRadiant ? lock.direHero : lock.radiantHero;
+  const selected = `${playerName} ${heroName}`.trim();
+  const opponent = `${opponentPlayer || "Unknown"} ${opponentHero || "Unknown"}`.trim();
+  return `Pos ${lock.position}: ${selected} vs ${opponent}`;
+}
+
+function renderProfileGameCards(playerName, heroName) {
+  if (!heroName) {
+    return `<p class="profile-game-empty">Click a hero above to list games for that player and hero.</p>`;
+  }
+
+  const matches = profileHeroGames(playerName, heroName);
+  return `
+    <div class="profile-game-results">
+      <div class="profile-game-count">${matches.length} game${matches.length === 1 ? "" : "s"} for ${escapeHtml(playerName)} on ${escapeHtml(heroName)}</div>
+      <div class="profile-game-list">
+        ${matches.map((game) => `
+          <button type="button" class="profile-game-card" data-game="${escapeHtml(game.name)}">
+            <strong>${escapeHtml(game.name)}</strong>
+            <span>${escapeHtml(formatDate(game.date))} · ${escapeHtml(game.result || "No result")}</span>
+            <span>${escapeHtml(profileHeroMatchup(game, playerName, heroName))}</span>
+            <span>Match ID: ${escapeHtml(game.matchId || "No match ID")}</span>
+          </button>
+        `).join("") || `<p class="empty">No matching games found.</p>`}
+      </div>
+    </div>
+  `;
+}
+
 function renderPlayerProfile() {
   populateProfilePlayers();
 
@@ -637,6 +709,9 @@ function renderPlayerProfile() {
   }
 
   const records = sortedHeroRecords(profile);
+  if (state.selectedProfileHero && !records.some((record) => record.hero === state.selectedProfileHero)) {
+    state.selectedProfileHero = "";
+  }
   setText(els.profilesNote, `${profile.player} has picked ${records.length} unique hero${records.length === 1 ? "" : "es"}.`);
   setHtml(els.profileContent, `
     <div class="profile-title-card">
@@ -649,67 +724,24 @@ function renderPlayerProfile() {
         <tbody>${heroRecordRows(records) || `<tr><td class="empty" colspan="3">No picked heroes recorded for this player.</td></tr>`}</tbody>
       </table>
     </div>
+    ${renderProfileGameCards(profile.player, state.selectedProfileHero)}
   `);
-}
 
-function gameHeroLocks(game) {
-  return Array.isArray(game.heroLocks) ? game.heroLocks : [];
-}
-
-function lockMatches(lock, playerQuery, heroQuery) {
-  const radiantPlayer = String(lock.radiantPlayer || "").toLowerCase();
-  const direPlayer = String(lock.direPlayer || "").toLowerCase();
-  const radiantHero = String(lock.radiantHero || "").toLowerCase();
-  const direHero = String(lock.direHero || "").toLowerCase();
-
-  const playerMatches = !playerQuery || radiantPlayer.includes(playerQuery) || direPlayer.includes(playerQuery);
-  const heroMatches = !heroQuery || radiantHero.includes(heroQuery) || direHero.includes(heroQuery);
-  return playerMatches && heroMatches;
-}
-
-function matchingLocks(game, playerQuery, heroQuery) {
-  return gameHeroLocks(game).filter((lock) => lockMatches(lock, playerQuery, heroQuery));
-}
-
-function renderLookupResults() {
-  const playerQuery = state.lookupPlayerQuery.trim().toLowerCase();
-  const heroQuery = state.lookupHeroQuery.trim().toLowerCase();
-
-  if (!playerQuery && !heroQuery) {
-    setHtml(els.lookupResults, `<p class="empty">Enter a player name, a hero name, or both.</p>`);
-    return;
+  for (const button of els.profileContent?.querySelectorAll("[data-profile-hero]") || []) {
+    button.addEventListener("click", () => {
+      state.selectedProfileHero = button.dataset.profileHero;
+      renderPlayerProfile();
+    });
   }
 
-  const matches = state.games
-    .map((game) => ({ game, locks: matchingLocks(game, playerQuery, heroQuery) }))
-    .filter((match) => match.locks.length > 0);
-
-  setHtml(els.lookupResults, `
-    <div class="lookup-count">${matches.length} matching game${matches.length === 1 ? "" : "s"}</div>
-    <div class="lookup-list">
-      ${matches.map(({ game, locks }) => `
-        <button type="button" class="lookup-card" data-game="${escapeHtml(game.name)}">
-          <strong>${escapeHtml(game.name)}</strong>
-          <span>${escapeHtml(game.date || "No date")} · ${escapeHtml(game.result || "No result")}</span>
-          <span>Match ID: ${escapeHtml(game.matchId || "No match ID")}</span>
-          <em>${locks.map((lock) => {
-            const radiant = `${lock.radiantPlayer || ""}${lock.radiantHero ? ` on ${lock.radiantHero}` : ""}`.trim();
-            const dire = `${lock.direPlayer || ""}${lock.direHero ? ` on ${lock.direHero}` : ""}`.trim();
-            return [radiant, dire].filter(Boolean).join(" · ");
-          }).join(" | ")}</em>
-        </button>
-      `).join("") || `<p class="empty">No matching games found.</p>`}
-    </div>
-  `);
-
-  for (const card of els.lookupResults?.querySelectorAll("[data-game]") || []) {
-    card.addEventListener("click", () => openGameFromLookup(card.dataset.game));
+  for (const card of els.profileContent?.querySelectorAll("[data-game]") || []) {
+    card.addEventListener("click", () => openGameFromProfile(card.dataset.game));
   }
 }
 
-function openGameFromLookup(gameName) {
+function openGameFromProfile(gameName) {
   state.selectedGame = gameName;
-  history.replaceState({ tab: "lookup" }, "", "#lookup");
+  history.replaceState({ tab: "profiles" }, "", "#player-heroes");
   history.pushState({ tab: "games", game: gameName }, "", `#game-${encodeURIComponent(gameName)}`);
   activateTab("games");
   renderGames();
@@ -732,7 +764,7 @@ function duoCellClass(winRate) {
 function renderDuoMatrix() {
   if (state.players.length === 0) {
     setHtml(els.duoMatrix, `<p class="empty">No player lineup data found. Force refresh the API cache to load player names.</p>`);
-    setText(els.duoNote, "No player lineup data available yet.");
+    setText(els.duoNote, "whose to blame?");
     return;
   }
 
@@ -756,7 +788,7 @@ function renderDuoMatrix() {
     return `<tr><th scope="row" title="${escapeHtml(rowPlayer)}">${escapeHtml(rowPlayer)}</th>${cells}</tr>`;
   }).join("");
 
-  setText(els.duoNote, `${state.players.length} player${state.players.length === 1 ? "" : "s"} included from game lineups.`);
+  setText(els.duoNote, "whose to blame?");
   setHtml(els.duoMatrix, `
     <div class="duo-table-wrap">
       <table class="duo-table" style="--player-count: ${state.players.length}">
@@ -879,7 +911,6 @@ function renderGameDetail(game) {
     return;
   }
 
-  const firstPick = game.firstPick?.side ? `${game.firstPick.side} first pick (${game.firstPick.cell}: ${game.firstPick.value})` : "No first-pick marker";
   setHtml(els.gameDetail, `
     <article class="game-detail-card">
       <div class="game-detail-header">
@@ -891,7 +922,7 @@ function renderGameDetail(game) {
       </div>
 
       <dl class="game-meta">
-        <div><dt>Date</dt><dd>${escapeHtml(game.date || "No date")}</dd></div>
+        <div><dt>Date</dt><dd>${escapeHtml(formatDate(game.date))}</dd></div>
         <div><dt>Result</dt><dd>${escapeHtml(game.result || "No result")}</dd></div>
         <div><dt>Match ID</dt><dd>${escapeHtml(game.matchId || "No match ID")}</dd></div>
       </dl>
@@ -903,7 +934,6 @@ function renderGameDetail(game) {
 
       <section class="detail-section">
         <h4>Hero Ban/Pick Phase</h4>
-        <p class="detail-note">${escapeHtml(firstPick)}</p>
         ${renderDraftEvents(game)}
       </section>
 
@@ -929,7 +959,7 @@ function renderGames() {
     return `
       <button class="game-card ${game.name === state.selectedGame ? "active" : ""}" type="button" data-game="${escapeHtml(game.name)}">
         <strong>${escapeHtml(game.name)}</strong>
-        <span>${escapeHtml(game.date || "No date")} · ${escapeHtml(game.result || "No result")}</span>
+        <span>${escapeHtml(formatDate(game.date))} · ${escapeHtml(game.result || "No result")}</span>
         <span>Match ID: ${escapeHtml(game.matchId || "No match ID")}</span>
         <span>${picks} picks · ${bans} bans</span>
       </button>
@@ -997,23 +1027,15 @@ function setupEvents() {
   els.profilePlayer?.addEventListener("change", (event) => {
     state.selectedProfilePlayer = event.target.value;
     state.profileHeroQuery = "";
+    state.selectedProfileHero = "";
     setValue(els.profileHeroSearch, "");
     renderPlayerProfile();
   });
 
   els.profileHeroSearch?.addEventListener("input", (event) => {
     state.profileHeroQuery = event.target.value;
+    state.selectedProfileHero = "";
     renderPlayerProfile();
-  });
-
-  els.lookupPlayer?.addEventListener("input", (event) => {
-    state.lookupPlayerQuery = event.target.value;
-    renderLookupResults();
-  });
-
-  els.lookupHero?.addEventListener("input", (event) => {
-    state.lookupHeroQuery = event.target.value;
-    renderLookupResults();
   });
 
   for (const button of els.sortButtons) {
@@ -1050,9 +1072,9 @@ function setupEvents() {
 
   window.addEventListener("popstate", (event) => {
     const tab = event.state?.tab;
-    if (tab === "lookup") {
+    if (tab === "profiles") {
       activateTab(tab);
-      renderLookupResults();
+      renderPlayerProfile();
     } else if (tab === "games") {
       state.selectedGame = event.state.game || state.selectedGame;
       activateTab(tab);

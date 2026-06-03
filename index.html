@@ -11,7 +11,7 @@
       <header class="hero">
         <p class="eyebrow">Road to TI2x</p>
         <h1>10v10 Doto</h1>
-        <p class="intro">See the tabs below.</p>
+        <p class="intro">Every Saturday, sometimes midweek because addict</p>
       </header>
 
       <section class="summary" aria-label="Dataset summary">
@@ -28,19 +28,17 @@
 
       <nav class="tabs" aria-label="Dashboard sections">
         <button class="tab-button active" type="button" data-tab="leaderboard">Leaderboard</button>
-        <button class="tab-button" type="button" data-tab="draft">Picking and Banning</button>
         <button class="tab-button" type="button" data-tab="duos">Duo Matrix</button>
         <button class="tab-button" type="button" data-tab="positions">Positions</button>
-        <button class="tab-button" type="button" data-tab="profiles">Profiles</button>
-        <button class="tab-button" type="button" data-tab="lookup">Game Lookup</button>
+        <button class="tab-button" type="button" data-tab="profiles">Player + Heroes</button>
+        <button class="tab-button" type="button" data-tab="draft">Picking and Banning</button>
         <button class="tab-button" type="button" data-tab="games">Games</button>
       </nav>
 
       <section id="leaderboard-panel" class="panel tab-panel active" aria-labelledby="leaderboard-heading">
-        <div class="panel-header">
+        <div class="panel-header leaderboard-header">
           <div>
             <h2 id="leaderboard-heading">Leaderboard</h2>
-            <p id="leaderboard-note">Player win rates from Radiant and Dire lineups.</p>
           </div>
         </div>
         <div class="table-wrap leaderboard-wrap">
@@ -100,10 +98,10 @@
       </section>
 
       <section id="duos-panel" class="panel duo-panel tab-panel" aria-labelledby="duo-heading" hidden>
-        <div class="panel-header">
+        <div class="panel-header duo-header">
           <div>
             <h2 id="duo-heading">Duo Win Rates</h2>
-            <p id="duo-note">Teammate records from Radiant and Dire lineups.</p>
+            <p id="duo-note">whose to blame?</p>
           </div>
         </div>
         <div id="duo-matrix" class="duo-matrix"></div>
@@ -138,8 +136,8 @@
       <section id="profiles-panel" class="panel tab-panel" aria-labelledby="profiles-heading" hidden>
         <div class="panel-header profile-header">
           <div>
-            <h2 id="profiles-heading">Player Profiles</h2>
-            <p id="profiles-note">Hero records by player, or search a hero to compare all players.</p>
+            <h2 id="profiles-heading">Player + Heroes</h2>
+            <p id="profiles-note">Hero records by player. Click a hero to see the games played.</p>
           </div>
           <label class="profile-control">
             <span>Player</span>
@@ -151,24 +149,6 @@
           </label>
         </div>
         <div id="profile-content" class="profile-content"></div>
-      </section>
-
-      <section id="lookup-panel" class="panel tab-panel" aria-labelledby="lookup-heading" hidden>
-        <div class="panel-header lookup-header">
-          <div>
-            <h2 id="lookup-heading">Game Lookup</h2>
-            <p id="lookup-note">Search by player and hero, then open the matching game details.</p>
-          </div>
-          <label class="lookup-control">
-            <span>Player</span>
-            <input id="lookup-player" type="search" placeholder="Player name" autocomplete="off">
-          </label>
-          <label class="lookup-control">
-            <span>Hero</span>
-            <input id="lookup-hero" type="search" placeholder="Hero name" autocomplete="off">
-          </label>
-        </div>
-        <div id="lookup-results" class="lookup-results"></div>
       </section>
 
       <section id="games-panel" class="panel games-panel tab-panel" aria-labelledby="games-heading" hidden>
