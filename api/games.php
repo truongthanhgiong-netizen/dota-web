@@ -5,8 +5,8 @@ const CACHE_FILE = __DIR__ . '/../data/google-games-cache.json';
 const CACHE_TTL_SECONDS = 86400;
 const BAN_STYLE_IDS = ['4' => true];
 const PICK_STYLE_IDS = ['7' => true];
-const BAN_FILL_COLORS = ['FFEA9999' => true];
-const PICK_FILL_COLORS = ['FFB6D7A8' => true];
+const BAN_FILL_COLORS = ['FFEA9999' => true, 'FFE06666' => true, 'FFF4CCCC' => true];
+const PICK_FILL_COLORS = ['FFB6D7A8' => true, 'FFD9EAD3' => true];
 
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store');
@@ -185,7 +185,7 @@ function extractGames(string $xlsx): array
                     'radiant' => playerNames($cells, $sharedStrings, 'D'),
                     'dire' => playerNames($cells, $sharedStrings, 'G'),
                 ],
-                'playerDraft' => sheetRows($cells, $sharedStrings, 5, 6, 'C', 'N'),
+                'playerDraft' => sheetRows($cells, $sharedStrings, $styleFillColors, 5, 6, 'C', 'N'),
                 'firstPick' => firstPickSide($cells, $sharedStrings),
                 'heroLocks' => heroLocks($cells, $sharedStrings),
                 'heroes' => $events,
@@ -235,18 +235,18 @@ function loadStyleFillColors(ZipArchive $zip): array
 
 function draftEventType(string $style, array $styleFillColors): ?string
 {
-    if (isset(BAN_STYLE_IDS[$style])) {
-        return 'ban';
-    }
-    if (isset(PICK_STYLE_IDS[$style])) {
-        return 'pick';
-    }
-
     $fillColor = $styleFillColors[$style] ?? '';
     if (isset(BAN_FILL_COLORS[$fillColor])) {
         return 'ban';
     }
     if (isset(PICK_FILL_COLORS[$fillColor])) {
+        return 'pick';
+    }
+
+    if (isset(BAN_STYLE_IDS[$style])) {
+        return 'ban';
+    }
+    if (isset(PICK_STYLE_IDS[$style])) {
         return 'pick';
     }
 
@@ -276,16 +276,18 @@ function formatMatchId(string $value): string
     return $value;
 }
 
-function sheetRows(array $cells, array $sharedStrings, int $startRow, int $endRow, string $startColumn, string $endColumn): array
+function sheetRows(array $cells, array $sharedStrings, array $styleFillColors, int $startRow, int $endRow, string $startColumn, string $endColumn): array
 {
     $rows = [];
     for ($row = $startRow; $row <= $endRow; $row++) {
         $values = [];
         for ($column = columnNumber($startColumn); $column <= columnNumber($endColumn); $column++) {
             $cell = columnName($column) . $row;
+            $style = isset($cells[$cell]) ? (string) $cells[$cell]['s'] : '';
             $values[] = [
                 'cell' => $cell,
                 'value' => trim(cellValue($cells[$cell] ?? null, $sharedStrings)),
+                'type' => $style !== '' ? draftEventType($style, $styleFillColors) : null,
             ];
         }
         $rows[] = $values;

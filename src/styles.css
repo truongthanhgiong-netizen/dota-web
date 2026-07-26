@@ -309,7 +309,7 @@ tbody tr:hover {
 }
 
 .leaderboard-table {
-  min-width: 760px;
+  min-width: 940px;
   background: #f5f5f5;
   color: #172033;
 }
@@ -369,6 +369,69 @@ tbody tr:hover {
 
 .leaderboard-player {
   font-weight: 700;
+}
+
+.match-pill,
+.rank-change {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 52px;
+  border-radius: 999px;
+  padding: 4px 9px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.match-win {
+  background: rgba(31, 122, 74, 0.16);
+  color: #1f7a4a;
+}
+
+.match-lose {
+  background: rgba(190, 49, 49, 0.16);
+  color: #be3131;
+}
+
+.match-none,
+.rank-even {
+  background: rgba(23, 32, 51, 0.1);
+  color: #6b7280;
+}
+
+.rank-change {
+  gap: 6px;
+}
+
+.rank-up {
+  background: rgba(22, 163, 74, 0.14);
+  color: #15803d;
+}
+
+.rank-down {
+  background: rgba(220, 38, 38, 0.14);
+  color: #b91c1c;
+}
+
+.rank-new {
+  background: rgba(217, 164, 65, 0.2);
+  color: #8a5a00;
+}
+
+.rank-triangle {
+  width: 0;
+  height: 0;
+  border-right: 5px solid transparent;
+  border-left: 5px solid transparent;
+}
+
+.rank-up .rank-triangle {
+  border-bottom: 9px solid currentColor;
+}
+
+.rank-down .rank-triangle {
+  border-top: 9px solid currentColor;
 }
 
 .positions-table {
@@ -947,11 +1010,11 @@ tbody tr:hover {
   top: -12px;
 }
 
-.player-pick.radiant {
+.player-pick.pick {
   background: #b6d7a8;
 }
 
-.player-pick.dire {
+.player-pick.ban {
   background: #e06666;
 }
 

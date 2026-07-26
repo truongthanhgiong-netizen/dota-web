@@ -275,6 +275,47 @@ function sortLeaderboard(players) {
   return ranked.map((record) => ({ ...record, groupCount }));
 }
 
+function gamePlayerResults(game) {
+  const results = new Map();
+  const radiantWon = game.result === "1-0";
+  const direWon = game.result === "0-1";
+
+  if (!radiantWon && !direWon) {
+    return results;
+  }
+
+  for (const player of playerLineup(game, "radiant")) {
+    results.set(player, radiantWon ? "win" : "lose");
+  }
+  for (const player of playerLineup(game, "dire")) {
+    results.set(player, direWon ? "win" : "lose");
+  }
+
+  return results;
+}
+
+function lastMatchResult(games, player) {
+  const lastGame = games[games.length - 1];
+  return lastGame ? gamePlayerResults(lastGame).get(player) || "" : "";
+}
+
+function rankMap(leaderboard) {
+  return new Map(leaderboard.map((record) => [record.player, record.rank]));
+}
+
+function withLeaderboardComparisons(leaderboard, games, previousLeaderboard) {
+  const previousRanks = rankMap(previousLeaderboard);
+
+  return leaderboard.map((record) => {
+    const previousRank = previousRanks.get(record.player);
+    return {
+      ...record,
+      lastMatch: lastMatchResult(games, record.player),
+      rankChange: previousRank ? previousRank - record.rank : null,
+    };
+  });
+}
+
 function calculatePlayerStats(games) {
   const players = new Map();
   const positionStats = new Map();
@@ -475,7 +516,7 @@ function renderSummary() {
 }
 
 function populateGameScope() {
-  setHtml(els.gameScope, state.allGames.map((game, index) => `
+  setHtml(els.gameScope, Array.from(state.allGames.entries()).reverse().map(([index, game]) => `
     <option value="${index + 1}">After ${escapeHtml(game.name)}</option>
   `).join(""));
   state.gameLimit = state.allGames.length;
@@ -486,8 +527,10 @@ function applyGameScope() {
   state.games = state.allGames.slice(0, state.gameLimit);
   state.stats = calculateStats(state.games);
   const playerStats = calculatePlayerStats(state.games);
+  const previousGames = state.allGames.slice(0, Math.max(0, state.gameLimit - 1));
+  const previousLeaderboard = previousGames.length > 0 ? calculatePlayerStats(previousGames).leaderboard : [];
   state.players = playerStats.players;
-  state.leaderboard = playerStats.leaderboard;
+  state.leaderboard = withLeaderboardComparisons(playerStats.leaderboard, state.games, previousLeaderboard);
   state.positionStats = playerStats.positionStats;
   state.profileStats = playerStats.profileStats;
   state.duos = playerStats.duos;
@@ -523,7 +566,7 @@ function leaderboardRowClass(record) {
 
 function renderLeaderboard() {
   if (state.leaderboard.length === 0) {
-    setHtml(els.leaderboardBody, `<tr><td class="empty" colspan="7">No player lineup data found. Force refresh the API cache to load player names.</td></tr>`);
+    setHtml(els.leaderboardBody, `<tr><td class="empty" colspan="9">No player lineup data found. Force refresh the API cache to load player names.</td></tr>`);
     setText(els.leaderboardNote, "No player lineup data available yet.");
     return;
   }
@@ -537,9 +580,34 @@ function renderLeaderboard() {
       <td class="number" data-label="Lose">${record.losses}</td>
       <td class="number" data-label="Score">${record.wins} - ${record.losses}</td>
       <td class="number" data-label="Winrate">${record.winRate.toFixed(2)}%</td>
+      <td class="number" data-label="Last Match">${renderLastMatch(record.lastMatch)}</td>
+      <td class="number" data-label="Rank Change">${renderRankChange(record.rankChange)}</td>
     </tr>
   `).join(""));
   setText(els.leaderboardNote, `${state.leaderboard.length} player${state.leaderboard.length === 1 ? "" : "s"} ranked by win rate.`);
+}
+
+function renderLastMatch(result) {
+  if (result === "win") {
+    return `<span class="match-pill match-win">Win</span>`;
+  }
+  if (result === "lose") {
+    return `<span class="match-pill match-lose">Lose</span>`;
+  }
+  return "";
+}
+
+function renderRankChange(change) {
+  if (change > 0) {
+    return `<span class="rank-change rank-up"><span class="rank-triangle"></span>${change}</span>`;
+  }
+  if (change < 0) {
+    return `<span class="rank-change rank-down"><span class="rank-triangle"></span>${Math.abs(change)}</span>`;
+  }
+  if (change === 0) {
+    return `<span class="rank-change rank-even">-</span>`;
+  }
+  return `<span class="rank-change rank-new">new</span>`;
 }
 
 function renderPositionStats() {
@@ -827,11 +895,11 @@ function renderPlayerDraftRows(game) {
         return `
           <div class="player-pick-step">
             <div class="player-pick-branch top">
-              ${radiantCell?.value ? `<span class="player-pick radiant" title="${escapeHtml(radiantCell.cell)}">${escapeHtml(radiantCell.value)}</span>` : ""}
+              ${radiantCell?.value ? `<span class="player-pick ${escapeHtml(radiantCell.type || "")}" title="${escapeHtml(radiantCell.cell)}">${escapeHtml(radiantCell.value)}</span>` : ""}
             </div>
             <div class="player-pick-line"></div>
             <div class="player-pick-branch bottom">
-              ${direCell?.value ? `<span class="player-pick dire" title="${escapeHtml(direCell.cell)}">${escapeHtml(direCell.value)}</span>` : ""}
+              ${direCell?.value ? `<span class="player-pick ${escapeHtml(direCell.type || "")}" title="${escapeHtml(direCell.cell)}">${escapeHtml(direCell.value)}</span>` : ""}
             </div>
           </div>
         `;
@@ -953,15 +1021,11 @@ function renderGameDetail(game) {
 function renderGames() {
   const selectedGame = state.games.find((game) => game.name === state.selectedGame) || null;
   setHtml(els.gamesList, state.games.map((game) => {
-    const picks = game.heroes.filter((hero) => hero.type === "pick").length;
-    const bans = game.heroes.filter((hero) => hero.type === "ban").length;
-
     return `
       <button class="game-card ${game.name === state.selectedGame ? "active" : ""}" type="button" data-game="${escapeHtml(game.name)}">
         <strong>${escapeHtml(game.name)}</strong>
         <span>${escapeHtml(formatDate(game.date))} · ${escapeHtml(game.result || "No result")}</span>
         <span>Match ID: ${escapeHtml(game.matchId || "No match ID")}</span>
-        <span>${picks} picks · ${bans} bans</span>
       </button>
     `;
   }).join(""));
@@ -1101,7 +1165,7 @@ async function init() {
     populateGameScope();
     applyGameScope();
   } catch (error) {
-    setHtml(els.leaderboardBody, `<tr><td class="error" colspan="7">${escapeHtml(error.message)}</td></tr>`);
+    setHtml(els.leaderboardBody, `<tr><td class="error" colspan="9">${escapeHtml(error.message)}</td></tr>`);
     setHtml(els.positionsBody, `<tr><td class="error" colspan="8">${escapeHtml(error.message)}</td></tr>`);
     setHtml(els.profileContent, `<p class="error">${escapeHtml(error.message)}</p>`);
     setText(els.dataNote, "Could not load the Google Sheet data.");
