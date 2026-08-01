@@ -521,7 +521,7 @@ tbody tr:hover {
 }
 
 .profile-table {
-  min-width: 640px;
+  min-width: 760px;
 }
 
 .profile-table td.winrate-high,
@@ -566,6 +566,58 @@ tbody tr:hover {
 .profile-table tr.selected-profile-hero {
   outline: 2px solid rgba(217, 164, 65, 0.5);
   outline-offset: -2px;
+}
+
+.position-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(36px, 1fr));
+  gap: 4px;
+  max-width: 340px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.position-grid span {
+  border-radius: 10px;
+  padding: 5px 6px;
+  color: var(--text);
+  font-size: 0.78rem;
+  font-weight: 900;
+  line-height: 1;
+  min-height: 1.25rem;
+}
+
+.position-grid span.winrate-high {
+  background: rgba(87, 199, 133, 0.24);
+  color: #d9ffe8;
+}
+
+.position-grid span.winrate-average {
+  background: rgba(217, 164, 65, 0.24);
+  color: #fff0c7;
+}
+
+.position-grid span.winrate-low {
+  background: rgba(255, 107, 107, 0.24);
+  color: #ffd1d1;
+}
+
+.position-grid span.position-empty {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--muted);
+}
+
+.position-header-grid {
+  margin-top: 6px;
+}
+
+.position-header-grid span {
+  background: transparent;
+  color: #ffe5a6;
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  min-height: auto;
+  padding: 0;
 }
 
 .profile-game-empty,
@@ -770,6 +822,17 @@ tbody tr:hover {
   line-height: 0.95;
 }
 
+.duo-table [data-duo-player] {
+  cursor: pointer;
+}
+
+.duo-table [data-duo-player]:hover {
+  color: #8a5a00;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+
 .duo-table tbody th {
   position: sticky;
   left: 0;
@@ -825,6 +888,18 @@ tbody tr:hover {
 
 .duo-self {
   background: #ffffff;
+}
+
+.duo-selected-player {
+  outline: 2px solid #d9a441;
+  outline-offset: -2px;
+}
+
+.duo-selected-cell {
+  position: relative;
+  outline: 3px solid #111827;
+  outline-offset: -3px;
+  box-shadow: inset 0 0 0 3px #d9a441;
 }
 
 .games-list {
@@ -1165,9 +1240,35 @@ tbody tr:hover {
 }
 
 @media (max-width: 760px) {
+  body {
+    background-attachment: scroll, scroll, scroll, scroll;
+  }
+
   .page {
     width: min(100% - 24px, 1180px);
     padding: 28px 0;
+  }
+
+  .hero {
+    margin-bottom: 20px;
+  }
+
+  .tabs {
+    position: sticky;
+    z-index: 5;
+    top: 0;
+    margin-right: -12px;
+    margin-left: -12px;
+    padding: 10px 12px;
+    background: linear-gradient(180deg, rgba(9, 12, 17, 0.96), rgba(9, 12, 17, 0.76));
+    backdrop-filter: blur(14px);
+    scroll-snap-type: x proximity;
+  }
+
+  .tab-button {
+    min-height: 44px;
+    padding: 10px 14px;
+    scroll-snap-align: start;
   }
 
   .summary {
@@ -1193,6 +1294,35 @@ tbody tr:hover {
     min-height: 96px;
     padding: 18px;
   }
+
+  .duo-table-wrap,
+  .table-wrap,
+  .lock-table-wrap,
+  .draft-timeline,
+  .player-pick-timeline {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .draft-timeline,
+  .player-pick-timeline {
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+
+  .player-pick-timeline {
+    grid-template-columns: repeat(var(--player-pick-count), minmax(86px, 1fr));
+    padding-bottom: 14px;
+  }
+
+  .draft-timeline {
+    grid-template-columns: repeat(var(--draft-count), minmax(74px, 1fr));
+    padding-bottom: 14px;
+  }
+
+  .draft-bubble,
+  .player-pick {
+    font-size: 0.72rem;
+  }
 }
 
 @media (max-width: 460px) {
@@ -1202,6 +1332,18 @@ tbody tr:hover {
 
   .intro {
     font-size: 0.98rem;
+  }
+
+  .scope-control {
+    width: 100%;
+  }
+
+  .scope-control select,
+  .profile-control select,
+  .profile-control input,
+  .search input,
+  .mobile-sort select {
+    min-height: 46px;
   }
 
   .summary {
@@ -1227,9 +1369,16 @@ tbody tr:hover {
   }
 
   .leaderboard-wrap,
-  .positions-wrap,
-  .duo-table-wrap {
+  .positions-wrap {
     overflow-x: hidden;
+  }
+
+  .leaderboard-wrap {
+    overflow-x: auto;
+  }
+
+  .profile-table-wrap {
+    overflow-x: auto;
   }
 
   .positions-wrap {
@@ -1247,6 +1396,116 @@ tbody tr:hover {
 
   .stats-table {
     min-width: 0;
+    background: transparent;
+  }
+
+  .leaderboard-table {
+    min-width: 720px;
+    font-size: 0.72rem;
+  }
+
+  .leaderboard-table th,
+  .leaderboard-table td {
+    padding: 7px 8px;
+  }
+
+  .leaderboard-table th {
+    font-size: 0.7rem;
+  }
+
+  .leaderboard-table .leaderboard-player {
+    min-width: 92px;
+  }
+
+  .leaderboard-table th:nth-child(2),
+  .leaderboard-table td:nth-child(2) {
+    position: sticky;
+    left: 0;
+    z-index: 2;
+    background: inherit;
+    box-shadow: 8px 0 12px rgba(0, 0, 0, 0.12);
+  }
+
+  .leaderboard-table th:nth-child(2) {
+    z-index: 3;
+    background: #356e58;
+  }
+
+  .positions-table {
+    min-width: 760px;
+    font-size: 0.72rem;
+  }
+
+  .positions-table th,
+  .positions-table td {
+    padding: 8px;
+  }
+
+  .positions-table th {
+    font-size: 0.68rem;
+  }
+
+  .positions-table th:first-child,
+  .positions-table td:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 2;
+    background: var(--panel-strong);
+    box-shadow: 8px 0 12px rgba(0, 0, 0, 0.18);
+  }
+
+  .positions-table th:first-child {
+    z-index: 3;
+  }
+
+  .profile-table {
+    min-width: 680px;
+    font-size: 0.72rem;
+  }
+
+  .profile-table th,
+  .profile-table td {
+    padding: 8px;
+  }
+
+  .profile-table th {
+    font-size: 0.68rem;
+  }
+
+  .profile-table th:first-child,
+  .profile-table td:first-child {
+    width: 150px;
+    min-width: 150px;
+    max-width: 150px;
+  }
+
+  .profile-table .hero-name,
+  .profile-table .leaderboard-player {
+    font-size: 0.62rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    word-break: normal;
+  }
+
+  .profile-table .profile-hero-button {
+    display: block;
+    font-size: 0.62rem;
+    overflow: hidden;
+    max-width: 100%;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .profile-table .position-grid {
+    min-width: 220px;
+  }
+
+  .leaderboard-table .match-pill,
+  .leaderboard-table .rank-change {
+    min-width: 40px;
+    padding: 4px 6px;
+    font-size: 0.64rem;
   }
 
   .stats-table thead {
@@ -1270,20 +1529,23 @@ tbody tr:hover {
     border: 1px solid var(--line);
     border-radius: 18px;
     padding: 14px;
-    background: rgba(0, 0, 0, 0.16);
+    background: rgba(0, 0, 0, 0.2);
+    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.18);
   }
 
   .stats-table tbody tr:hover {
-    background: rgba(0, 0, 0, 0.16);
+    background: rgba(0, 0, 0, 0.2);
   }
 
   .stats-table td {
     display: grid;
-    grid-template-columns: minmax(88px, 0.42fr) 1fr;
+    grid-template-columns: minmax(92px, 0.42fr) 1fr;
     gap: 12px;
     align-items: center;
     border-bottom: 0;
     padding: 0;
+    color: var(--text);
+    white-space: normal;
   }
 
   .stats-table td::before {
@@ -1293,6 +1555,14 @@ tbody tr:hover {
     font-weight: 800;
     letter-spacing: 0.1em;
     text-transform: uppercase;
+  }
+
+  .profile-content {
+    padding: 14px;
+  }
+
+  .profile-title-card {
+    width: 100%;
   }
 
   .hero-name {
@@ -1319,5 +1589,74 @@ tbody tr:hover {
 
   .game-meta {
     grid-template-columns: 1fr;
+  }
+
+  .duo-panel {
+    width: auto;
+  }
+
+  .duo-table-wrap {
+    justify-content: start;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: auto;
+    max-height: 72vh;
+    border-radius: 16px;
+  }
+
+  .duo-table {
+    width: calc((var(--player-count) + 1) * 78px);
+    min-width: calc((var(--player-count) + 1) * 78px);
+    max-width: none;
+    font-size: 0.58rem;
+  }
+
+  .duo-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+  }
+
+  .duo-table thead th:first-child,
+  .duo-table tbody th {
+    position: sticky;
+    left: 0;
+    z-index: 3;
+  }
+
+  .games-panel {
+    padding: 14px;
+  }
+
+  .game-card {
+    min-height: 96px;
+    padding: 16px;
+  }
+
+  .game-detail-card {
+    padding: 16px;
+  }
+
+  .game-detail-header {
+    align-items: stretch;
+  }
+
+  .game-detail-header button {
+    min-height: 44px;
+  }
+
+  .player-pick-timeline,
+  .draft-timeline {
+    margin-right: -16px;
+    margin-left: -16px;
+    padding-right: 16px;
+    padding-left: 16px;
+  }
+
+  .lock-table-wrap {
+    margin-right: -16px;
+    margin-left: -16px;
+    padding-right: 16px;
+    padding-left: 16px;
   }
 }

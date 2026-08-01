@@ -18,6 +18,7 @@ const state = {
   profileHeroQuery: "",
   selectedProfileHero: "",
   selectedGame: "",
+  duoSelection: [],
   query: "",
 };
 
@@ -206,17 +207,29 @@ function addLineupPositionResults(positionStats, lineup, side, won) {
   });
 }
 
-function addProfileHeroResult(profileStats, playerName, heroName, won) {
+function addProfileHeroResult(profileStats, playerName, heroName, won, position) {
   if (!playerName || !heroName) {
     return;
   }
 
   const profile = profileStats.get(playerName) || { player: playerName, heroes: new Map() };
-  const hero = profile.heroes.get(heroName) || { hero: heroName, wins: 0, losses: 0 };
+  const hero = profile.heroes.get(heroName) || {
+    hero: heroName,
+    wins: 0,
+    losses: 0,
+    positions: Array.from({ length: 5 }, () => ({ wins: 0, losses: 0 })),
+  };
+  const positionRecord = hero.positions[position - 1];
   if (won) {
     hero.wins += 1;
+    if (positionRecord) {
+      positionRecord.wins += 1;
+    }
   } else {
     hero.losses += 1;
+    if (positionRecord) {
+      positionRecord.losses += 1;
+    }
   }
 
   profile.heroes.set(heroName, hero);
@@ -235,8 +248,8 @@ function addHeroLockProfileResults(profileStats, game) {
   }
 
   for (const lock of game.heroLocks) {
-    addProfileHeroResult(profileStats, lock.radiantPlayer, lock.radiantHero, radiantWon);
-    addProfileHeroResult(profileStats, lock.direPlayer, lock.direHero, direWon);
+    addProfileHeroResult(profileStats, lock.radiantPlayer, lock.radiantHero, radiantWon, Number(lock.position));
+    addProfileHeroResult(profileStats, lock.direPlayer, lock.direHero, direWon, Number(lock.position));
   }
 }
 
@@ -637,6 +650,7 @@ function heroRecordRows(records) {
     return `
       <tr class="${record.hero === state.selectedProfileHero ? "selected-profile-hero" : ""}">
         <td class="hero-name" data-label="Hero"><button type="button" class="profile-hero-button" data-profile-hero="${escapeHtml(record.hero)}">${escapeHtml(record.hero)}</button></td>
+        <td data-label="Positions">${formatHeroPositions(record)}</td>
         <td class="number ${winrateClass(record)}" data-label="Winrate">${formatRecord(record)}</td>
         <td class="number" data-label="Games">${total}</td>
       </tr>
@@ -658,6 +672,22 @@ function sortedHeroRecords(profile) {
     }
     return a.hero.localeCompare(b.hero);
   });
+}
+
+function formatHeroPositions(record) {
+  const positions = Array.isArray(record.positions) ? record.positions : [];
+  const cells = Array.from({ length: 5 }, (_, index) => {
+    const positionRecord = positions[index] || { wins: 0, losses: 0 };
+    const total = positionRecord.wins + positionRecord.losses;
+    const className = total === 0 ? "position-empty" : winrateClass(positionRecord);
+    return `<span class="${className}">${total === 0 ? "" : `${positionRecord.wins}-${positionRecord.losses}`}</span>`;
+  }).join("");
+
+  return `<div class="position-grid">${cells}</div>`;
+}
+
+function positionHeader() {
+  return `Positions <div class="position-grid position-header-grid">${[1, 2, 3, 4, 5].map((position) => `<span>P${position}</span>`).join("")}</div>`;
 }
 
 function populateProfilePlayers() {
@@ -699,8 +729,8 @@ function renderHeroSearchProfiles(query) {
     <div class="profile-mode-note">Hero search: <strong>${escapeHtml(state.profileHeroQuery)}</strong></div>
     <div class="table-wrap profile-table-wrap">
       <table class="profile-table">
-        <thead><tr><th>Player</th><th>Hero</th><th>Winrate</th><th>Games</th></tr></thead>
-        <tbody>${matches.map((record) => `<tr><td class="leaderboard-player">${escapeHtml(record.player)}</td><td>${escapeHtml(record.hero)}</td><td class="number ${winrateClass(record)}">${formatRecord(record)}</td><td class="number">${record.wins + record.losses}</td></tr>`).join("") || `<tr><td class="empty" colspan="4">No players found for that hero.</td></tr>`}</tbody>
+        <thead><tr><th>Player</th><th>Hero</th><th>${positionHeader()}</th><th>Winrate</th><th>Games</th></tr></thead>
+        <tbody>${matches.map((record) => `<tr><td class="leaderboard-player" data-label="Player">${escapeHtml(record.player)}</td><td data-label="Hero">${escapeHtml(record.hero)}</td><td data-label="Positions">${formatHeroPositions(record)}</td><td class="number ${winrateClass(record)}" data-label="Winrate">${formatRecord(record)}</td><td class="number" data-label="Games">${record.wins + record.losses}</td></tr>`).join("") || `<tr><td class="empty" colspan="5">No players found for that hero.</td></tr>`}</tbody>
       </table>
     </div>
   `);
@@ -788,8 +818,8 @@ function renderPlayerProfile() {
     </div>
     <div class="table-wrap profile-table-wrap">
       <table class="profile-table">
-        <thead><tr><th>Hero</th><th>Winrate</th><th>Games</th></tr></thead>
-        <tbody>${heroRecordRows(records) || `<tr><td class="empty" colspan="3">No picked heroes recorded for this player.</td></tr>`}</tbody>
+        <thead><tr><th>Hero</th><th>${positionHeader()}</th><th>Winrate</th><th>Games</th></tr></thead>
+        <tbody>${heroRecordRows(records) || `<tr><td class="empty" colspan="4">No picked heroes recorded for this player.</td></tr>`}</tbody>
       </table>
     </div>
     ${renderProfileGameCards(profile.player, state.selectedProfileHero)}
@@ -829,34 +859,94 @@ function duoCellClass(winRate) {
   return "duo-zero";
 }
 
-function renderDuoMatrix() {
-  if (state.players.length === 0) {
-    setHtml(els.duoMatrix, `<p class="empty">No player lineup data found. Force refresh the API cache to load player names.</p>`);
-    setText(els.duoNote, "whose to blame?");
+function duoCellId(playerA, playerB) {
+  return [playerA, playerB].sort((a, b) => a.localeCompare(b)).map(encodeURIComponent).join("--");
+}
+
+function clearDuoSelection() {
+  state.duoSelection = [];
+  updateDuoSelection();
+}
+
+function updateDuoSelection() {
+  for (const element of els.duoMatrix?.querySelectorAll(".duo-selected-player, .duo-selected-cell") || []) {
+    element.classList.remove("duo-selected-player", "duo-selected-cell");
+  }
+
+  for (const player of state.duoSelection) {
+    for (const header of els.duoMatrix?.querySelectorAll("[data-duo-player]") || []) {
+      header.classList.toggle("duo-selected-player", header.dataset.duoPlayer === player || header.classList.contains("duo-selected-player"));
+    }
+  }
+
+  if (state.duoSelection.length !== 2) {
     return;
   }
 
-  const headers = state.players.map((player) => `<th scope="col" title="${escapeHtml(player)}">${escapeHtml(player)}</th>`).join("");
+  const targetId = duoCellId(state.duoSelection[0], state.duoSelection[1]);
+  const target = Array.from(els.duoMatrix?.querySelectorAll("[data-duo-cell]") || []).find((cell) => cell.dataset.duoCell === targetId);
+  if (target) {
+    target.classList.add("duo-selected-cell");
+    target.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+  }
+}
+
+function selectDuoPlayer(player) {
+  if (!player) {
+    clearDuoSelection();
+    return;
+  }
+
+  if (state.duoSelection.length === 0 || state.duoSelection.length === 2) {
+    state.duoSelection = [player];
+  } else if (state.duoSelection[0] === player) {
+    state.duoSelection = [];
+  } else {
+    state.duoSelection = [state.duoSelection[0], player];
+  }
+
+  updateDuoSelection();
+}
+
+function handleDuoMatrixClick(event) {
+  const playerHeader = event.target.closest("[data-duo-player]");
+  if (playerHeader) {
+    selectDuoPlayer(playerHeader.dataset.duoPlayer);
+    return;
+  }
+
+  clearDuoSelection();
+}
+
+function renderDuoMatrix() {
+  if (state.players.length === 0) {
+    setHtml(els.duoMatrix, `<p class="empty">No player lineup data found. Force refresh the API cache to load player names.</p>`);
+    setText(els.duoNote, "Click two player names to jump to their duo record.");
+    return;
+  }
+
+  const headers = state.players.map((player) => `<th scope="col" title="${escapeHtml(player)}" data-duo-player="${escapeHtml(player)}">${escapeHtml(player)}</th>`).join("");
   const rows = state.players.map((rowPlayer) => {
     const cells = state.players.map((colPlayer) => {
+      const cellId = duoCellId(rowPlayer, colPlayer);
       if (rowPlayer === colPlayer) {
-        return `<td class="duo-self" aria-label="${escapeHtml(rowPlayer)}"></td>`;
+        return `<td class="duo-self" aria-label="${escapeHtml(rowPlayer)}" data-duo-cell="${escapeHtml(cellId)}"></td>`;
       }
 
       const record = state.duos.get(duoKey(rowPlayer, colPlayer));
       if (!record) {
-        return `<td class="duo-empty" data-label="${escapeHtml(colPlayer)}"></td>`;
+        return `<td class="duo-empty" data-label="${escapeHtml(colPlayer)}" data-duo-cell="${escapeHtml(cellId)}"></td>`;
       }
 
       const total = record.wins + record.losses;
       const winRate = Math.round(rate(record.wins, total));
-      return `<td class="${duoCellClass(winRate)}" data-label="${escapeHtml(colPlayer)}"><span>${winRate}%</span><small>(${record.wins}-${record.losses})</small></td>`;
+      return `<td class="${duoCellClass(winRate)}" data-label="${escapeHtml(colPlayer)}" data-duo-cell="${escapeHtml(cellId)}"><span>${winRate}%</span><small>(${record.wins}-${record.losses})</small></td>`;
     }).join("");
 
-    return `<tr><th scope="row" title="${escapeHtml(rowPlayer)}">${escapeHtml(rowPlayer)}</th>${cells}</tr>`;
+    return `<tr><th scope="row" title="${escapeHtml(rowPlayer)}" data-duo-player="${escapeHtml(rowPlayer)}">${escapeHtml(rowPlayer)}</th>${cells}</tr>`;
   }).join("");
 
-  setText(els.duoNote, "whose to blame?");
+  setText(els.duoNote, "Click two player names to jump to their duo record.");
   setHtml(els.duoMatrix, `
     <div class="duo-table-wrap">
       <table class="duo-table" style="--player-count: ${state.players.length}">
@@ -865,6 +955,8 @@ function renderDuoMatrix() {
       </table>
     </div>
   `);
+  els.duoMatrix.onclick = handleDuoMatrixClick;
+  updateDuoSelection();
 }
 
 function draftSide(cell) {
@@ -1133,6 +1225,12 @@ function setupEvents() {
       activateTab(button.dataset.tab);
     });
   }
+
+  document.addEventListener("click", (event) => {
+    if (state.duoSelection.length > 0 && !event.target.closest("#duos-panel")) {
+      clearDuoSelection();
+    }
+  });
 
   window.addEventListener("popstate", (event) => {
     const tab = event.state?.tab;
