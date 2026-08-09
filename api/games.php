@@ -185,7 +185,7 @@ function extractGames(string $xlsx): array
                     'radiant' => playerNames($cells, $sharedStrings, 'D'),
                     'dire' => playerNames($cells, $sharedStrings, 'G'),
                 ],
-                'playerDraft' => sheetRows($cells, $sharedStrings, $styleFillColors, 5, 6, 'C', 'N'),
+                'playerDraft' => sheetRows($cells, $sharedStrings, $styleFillColors, 5, 6, 'C', 'K'),
                 'firstPick' => firstPickSide($cells, $sharedStrings),
                 'heroLocks' => heroLocks($cells, $sharedStrings),
                 'heroes' => $events,

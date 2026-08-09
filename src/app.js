@@ -971,8 +971,8 @@ function draftSide(cell) {
 
 function renderPlayerDraftRows(game) {
   const rows = Array.isArray(game.playerDraft) ? game.playerDraft : [];
-  const radiant = rows[0] || [];
-  const dire = rows[1] || [];
+  const radiant = (rows[0] || []).slice(0, 9);
+  const dire = (rows[1] || []).slice(0, 9);
   const columnCount = Math.max(radiant.length, dire.length);
 
   if ([...radiant, ...dire].every((cell) => !cell?.value)) {
@@ -980,22 +980,30 @@ function renderPlayerDraftRows(game) {
   }
 
   return `
-    <div class="player-pick-timeline" style="--player-pick-count: ${columnCount}">
+    <div class="draft-timeline player-pick-timeline" style="--draft-count: ${columnCount}; --player-pick-count: ${columnCount}">
       ${Array.from({ length: columnCount }, (_, index) => {
         const radiantCell = radiant[index];
         const direCell = dire[index];
         return `
-          <div class="player-pick-step">
-            <div class="player-pick-branch top">
-              ${radiantCell?.value ? `<span class="player-pick ${escapeHtml(radiantCell.type || "")}" title="${escapeHtml(radiantCell.cell)}">${escapeHtml(radiantCell.value)}</span>` : ""}
+          <div class="draft-step player-draft-step">
+            <div class="draft-branch top">
+              ${radiantCell?.value ? renderPlayerPickBubble(radiantCell, "radiant") : ""}
             </div>
-            <div class="player-pick-line"></div>
-            <div class="player-pick-branch bottom">
-              ${direCell?.value ? `<span class="player-pick ${escapeHtml(direCell.type || "")}" title="${escapeHtml(direCell.cell)}">${escapeHtml(direCell.value)}</span>` : ""}
+            <div class="draft-line"><span>${index + 1}</span></div>
+            <div class="draft-branch bottom">
+              ${direCell?.value ? renderPlayerPickBubble(direCell, "dire") : ""}
             </div>
           </div>
         `;
       }).join("")}
+    </div>
+  `;
+}
+
+function renderPlayerPickBubble(cell, side) {
+  return `
+    <div class="draft-bubble player-pick-bubble ${side}" title="${escapeHtml(cell.cell)}">
+      <strong>${escapeHtml(cell.value)}</strong>
     </div>
   `;
 }
@@ -1112,7 +1120,7 @@ function renderGameDetail(game) {
 
 function renderGames() {
   const selectedGame = state.games.find((game) => game.name === state.selectedGame) || null;
-  setHtml(els.gamesList, state.games.map((game) => {
+  setHtml(els.gamesList, [...state.games].reverse().map((game) => {
     return `
       <button class="game-card ${game.name === state.selectedGame ? "active" : ""}" type="button" data-game="${escapeHtml(game.name)}">
         <strong>${escapeHtml(game.name)}</strong>

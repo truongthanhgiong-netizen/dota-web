@@ -1013,84 +1013,16 @@ tbody tr:hover {
   background: rgba(255, 255, 255, 0.05);
 }
 
-.player-pick-timeline {
-  display: grid;
-  grid-template-columns: repeat(var(--player-pick-count), minmax(0, 1fr));
-  width: 100%;
-  padding: 8px 0;
-}
-
-.player-pick-step {
-  display: grid;
-  grid-template-rows: minmax(34px, auto) 20px minmax(34px, auto);
-  min-width: 0;
-}
-
-.player-pick-branch {
-  display: flex;
-  justify-content: center;
-  padding: 0 3px;
-}
-
-.player-pick-branch.top {
-  align-items: end;
-}
-
-.player-pick-branch.bottom {
-  align-items: start;
-}
-
-.player-pick-line {
-  position: relative;
-}
-
-.player-pick-line::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 50%;
-  height: 2px;
-  background: rgba(255, 255, 255, 0.32);
-}
-
-.player-pick {
-  position: relative;
-  width: 100%;
-  overflow: hidden;
-  border-radius: 999px;
-  padding: 7px 8px;
-  color: #071018;
-  font-size: clamp(0.62rem, 0.72vw, 0.86rem);
-  font-weight: 800;
-  text-align: center;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.player-pick::before {
-  content: "";
-  position: absolute;
-  left: 50%;
-  width: 2px;
-  height: 12px;
-  background: rgba(255, 255, 255, 0.32);
-}
-
-.player-pick-branch.top .player-pick::before {
-  bottom: -12px;
-}
-
-.player-pick-branch.bottom .player-pick::before {
-  top: -12px;
-}
-
-.player-pick.pick {
+.player-pick-bubble.radiant {
   background: #b6d7a8;
 }
 
-.player-pick.ban {
+.player-pick-bubble.dire {
   background: #e06666;
+}
+
+.player-pick-bubble strong {
+  font-size: clamp(0.56rem, 0.72vw, 0.82rem);
 }
 
 .draft-timeline {
